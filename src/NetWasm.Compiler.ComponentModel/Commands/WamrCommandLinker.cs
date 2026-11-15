@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Linq;
+using NetWasm.Compiler.ComponentModel.Merging;
 using NetWasm.Compiler.ComponentModel.Optimization;
 using NetWasm.Compiler.ComponentModel.Raw;
 using NetWasm.Compiler.Core.ManagedExecutables;
@@ -34,7 +36,17 @@ public sealed class WamrCommandLinker(
         var mergedPath = Path.Combine(workspace.TemporaryDirectory, "merged.wasm");
         var selectedPath = Path.Combine(workspace.TemporaryDirectory, "selected.wasm");
         environment.Write(environmentPath, request.Target);
-        modules.Write(CreateAdapter(entryPoint), adapterPath);
+        // Named UnmanagedCallersOnly methods are the module's host-callable functions. A module with
+        // any is persistent: the host runs _initialize once, then calls them, so nothing exits.
+        var hostExports = WasmMergeModule.Parse(new(
+                "netwasm.application.v1", reader.Read(request.ApplicationModulePath)))
+            .Exports
+            .Where(export => export.Kind == WasmMergeModule.FunctionKind &&
+                export.Name != "run" && !export.Name.StartsWith("netwasm.", StringComparison.Ordinal))
+            .Select(export => export.Name)
+            .ToArray();
+        var persistent = hostExports.Length != 0;
+        modules.Write(CreateAdapter(entryPoint, persistent), adapterPath);
         merge.Run(new(
             request.ApplicationModulePath,
             request.RuntimeModulePath,
@@ -51,7 +63,12 @@ public sealed class WamrCommandLinker(
                 mergedPath),
             Exports = new(null, [])
             {
-                KeptExports = [new("_start", 0), new("memory", 2)],
+                KeptExports =
+                [
+                    new(persistent ? "_initialize" : "_start", 0),
+                    new("memory", 2),
+                    .. hostExports.Select(name => new WasmInternalExport(name, 0)),
+                ],
             },
         });
         optimizer.Optimize(
@@ -69,8 +86,21 @@ public sealed class WamrCommandLinker(
         files.Move(workspace.LinkedModulePath, request.OutputPath);
     }
 
-    private static string CreateAdapter(ManagedExecutableEntryPointAbi entryPoint)
+    private static string CreateAdapter(ManagedExecutableEntryPointAbi entryPoint, bool persistent)
     {
+        if (persistent)
+        {
+            var drop = entryPoint.ReturnShape switch
+            {
+                ManagedExecutableReturnShape.Void => "",
+                ManagedExecutableReturnShape.ExitCode => "drop",
+                _ => throw ComponentException.Invalid("unsupported WAMR command return type"),
+            };
+            var returns = entryPoint.ReturnShape == ManagedExecutableReturnShape.Void ? "" : "(result i32)";
+            return "(module " +
+                $"(import \"netwasm.application.v1\" \"run\" (func $run {returns})) " +
+                $"(func (export \"_initialize\") call $run {drop}))";
+        }
         var (result, code) = entryPoint.ReturnShape switch
         {
             ManagedExecutableReturnShape.Void => ("", "i32.const 0"),

@@ -64,6 +64,40 @@ exceptions with traps or disable `catch`/`finally`. Incidental memory
 initialization and copying use scalar or bulk-memory operations rather than
 SIMD. Existing output modes retain their existing emission policies.
 
+### Host imports, exports and callbacks
+
+No WIT is involved; the embedding is plain C ABI.
+
+- **Imports (C# calls C/C++, for example GPIO).** Declare
+  `[DllImport("esp", EntryPoint = "gpio_set_level"), WasmImportLinkage]` and
+  register `"gpio_set_level"` under the module name `esp` with
+  `wasm_runtime_register_natives`. Use any module name except `env`,
+  `wasi_snapshot_preview1` and `netwasm.*`.
+- **Exports (C/C++ calls C#).** Mark a static method
+  `[UnmanagedCallersOnly(EntryPoint = "name")]`; it becomes the wasm export
+  `name`. Look it up with `wasm_runtime_lookup_function` and call it any number
+  of times. Parameters and results are scalars or pointers (`int`, `nint`,
+  ...), like other native callbacks.
+- **Persistent module.** A module with at least one such export exports
+  `_initialize` instead of `_start`, never calls `proc_exit`, and `Main` is the
+  one-time initializer. Call `_initialize` once, then the exports.
+- **Callbacks.** C# passes `(nint)(delegate* unmanaged<...>)&Method` (a wasm
+  table index) to C and C calls it with `wasm_runtime_call_indirect`. C
+  callbacks into C# arrive as an index, which C# invokes with
+  `delegate* unmanaged<...>`; for C functions, register a host import that
+  dispatches by an id the C# side supplies.
+- The runtime also imports `netwasm.host.v1` `report_terminal_exception_v2` and
+  `raise_terminal_exception`, used only for an unhandled exception that reaches
+  a boundary. WAMR logs a link warning if the host omits them; register them to
+  observe such failures. Exceptions are caught inside C# and must not be
+  expected to propagate through native frames.
+
+`tests/end-to-end/wamr/embedded` holds a C# module and a C host
+(`host.c`, built against WAMR's `libiwasm.a`) exercising all of these. Against
+the Espressif-commit Linux build it prints `add=42`, GPIO imports,
+`fire=41`, `divide=-1` (caught `DivideByZeroException`) and
+`call_indirect=42`.
+
 ### Verified scope and remaining work
 
 On Linux x86-64, a Release command built with checkout compiler/task assemblies
