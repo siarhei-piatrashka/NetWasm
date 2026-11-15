@@ -11,6 +11,26 @@ using static EmitterTestSupport;
 
 public sealed class ValueFrameInitializationEmitterTests
 {
+    [Fact]
+    public void ScalarMemoryPolicyZeroesWideStorageWithoutSimd()
+    {
+        var addresses = new RecordingValueFrameAddressEmitter();
+        var emitter = CreateEmitter(new RecordingLayoutProvider(), addresses, new FixedValueLayoutProvider(32));
+        var type = CliTypeIdentity.Named(Assembly, "Fixture", "Value", isValueType: true, CliValueKind.ValueType);
+        var context = CreateContext(new ValueFrameLayout(
+            32, ImmutableDictionary<int, int>.Empty.Add(0, 0), [], [], [])) with
+        {
+            UseScalarMemoryOperations = true,
+        };
+        var code = new RecordingInstructionWriter();
+
+        emitter.Initialize(code, CreateHeader([type]), context);
+
+        var stores = code.ToInstructions().Where(instruction => instruction.Opcode == WasmOpcodes.I64Store).ToArray();
+        Assert.Equal(new uint[] { 0, 8, 16, 24 }, stores.Select(instruction => instruction.Operand.Offset));
+        Assert.DoesNotContain(code.ToInstructions(), instruction => instruction.Opcode == WasmOpcodes.SimdPrefixed);
+    }
+
     [Theory]
     [InlineData(1, WasmOpcodes.I32Store8)]
     [InlineData(2, WasmOpcodes.I32Store16)]

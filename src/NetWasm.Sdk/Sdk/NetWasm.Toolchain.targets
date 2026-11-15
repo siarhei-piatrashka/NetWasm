@@ -20,13 +20,13 @@
     <NetWasmToolchainCompilerWitPackagePath Condition="'$(NetWasmToolchainCompilerWitPackagePath)' == '' AND '$(NetWasmToolchainPackageRoot)' != ''">$([System.IO.Path]::Combine('$(NetWasmToolchainPackageRoot)', 'tools', 'wit-packages', 'compiler.wit.wasm'))</NetWasmToolchainCompilerWitPackagePath>
     <NetWasmToolchainWitPackagePath Condition="'$(NetWasmToolchainWitPackagePath)' == '' AND '$(NetWasmStructuredDiagnostics)' == 'true'">$(NetWasmToolchainDiagnosticCommandWitPackagePath)</NetWasmToolchainWitPackagePath>
     <NetWasmToolchainWitPackagePath Condition="'$(NetWasmToolchainWitPackagePath)' == ''">$(NetWasmToolchainCommandWitPackagePath)</NetWasmToolchainWitPackagePath>
-    <NetWasmWitPath Condition="'$(NetWasmWitPath)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(NetWasmToolchainWitPackagePath)' != ''">$(NetWasmToolchainWitPackagePath)</NetWasmWitPath>
+    <NetWasmWitPath Condition="'$(NetWasmWitPath)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(NetWasmToolchainWitPackagePath)' != '' AND '$(NetWasmWamr)' != 'true'">$(NetWasmToolchainWitPackagePath)</NetWasmWitPath>
     <NetWasmWorld Condition="'$(NetWasmWorld)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(_NetWasmComponentLibrary)' != 'true' AND '$(NetWasmStructuredDiagnostics)' == 'true'">netwasm:component/diagnostic-command@1.0.0</NetWasmWorld>
     <NetWasmWorld Condition="'$(NetWasmWorld)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(_NetWasmComponentLibrary)' != 'true'">command</NetWasmWorld>
     <NetWasmCompilerWitPath Condition="'$(NetWasmCompilerWitPath)' == '' AND ('$(_NetWasmWorkerKind)' == 'wit' OR '$(_NetWasmPlainCoreModule)' == 'true' OR '$(_NetWasmComponentLibrary)' == 'true')">$(NetWasmWitPath)</NetWasmCompilerWitPath>
     <NetWasmCompilerWitWorld Condition="'$(NetWasmCompilerWitWorld)' == '' AND ('$(_NetWasmWorkerKind)' == 'wit' OR '$(_NetWasmPlainCoreModule)' == 'true' OR '$(_NetWasmComponentLibrary)' == 'true')">$(NetWasmWorld)</NetWasmCompilerWitWorld>
     <NetWasmCompilerWitWorld Condition="'$(NetWasmCompilerWitWorld)' == '' AND '$(_NetWasmWorkerKind)' == 'jsexport'">netwasm:platform@1.0.0/platform</NetWasmCompilerWitWorld>
-    <NetWasmCompilerWitPath Condition="'$(NetWasmCompilerWitPath)' == '' AND '$(_NetWasmWorkerKind)' != 'wit' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(_NetWasmComponentLibrary)' != 'true' AND '$(NetWasmToolchainCompilerWitPackagePath)' != ''">$(NetWasmToolchainCompilerWitPackagePath)</NetWasmCompilerWitPath>
+    <NetWasmCompilerWitPath Condition="'$(NetWasmCompilerWitPath)' == '' AND '$(_NetWasmWorkerKind)' != 'wit' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(_NetWasmComponentLibrary)' != 'true' AND '$(NetWasmToolchainCompilerWitPackagePath)' != '' AND '$(NetWasmWamr)' != 'true'">$(NetWasmToolchainCompilerWitPackagePath)</NetWasmCompilerWitPath>
     <NetWasmCompilerWitWorld Condition="'$(NetWasmCompilerWitWorld)' == '' AND '$(_NetWasmWorkerKind)' != 'wit' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(_NetWasmComponentLibrary)' != 'true'">netwasm:platform@1.0.0/platform</NetWasmCompilerWitWorld>
     <!-- Compiler.Tasks is imported by Microsoft.NET.Sdk before this file, so
          its evaluation-time fallbacks may have observed empty SDK defaults. -->
@@ -213,9 +213,9 @@
     <PropertyGroup>
       <!-- A project may name another nwc, such as one built from source. -->
       <NetWasmCompilerPath Condition="'$(NetWasmCompilerPath)' == ''">$(_NetWasmResolvedCompilerPath)</NetWasmCompilerPath>
-      <NetWasmWitPath Condition="'$(NetWasmWitPath)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(NetWasmStructuredDiagnostics)' == 'true'">$(NetWasmResolvedDiagnosticCommandWitPackagePath)</NetWasmWitPath>
-      <NetWasmWitPath Condition="'$(NetWasmWitPath)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true'">$(NetWasmResolvedCommandWitPackagePath)</NetWasmWitPath>
-      <NetWasmCompilerWitPath Condition="'$(NetWasmCompilerWitPath)' == '' AND '$(_NetWasmWorkerKind)' != 'wit' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(_NetWasmComponentLibrary)' != 'true'">$(NetWasmResolvedCompilerWitPackagePath)</NetWasmCompilerWitPath>
+      <NetWasmWitPath Condition="'$(NetWasmWitPath)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(NetWasmStructuredDiagnostics)' == 'true' AND '$(NetWasmWamr)' != 'true'">$(NetWasmResolvedDiagnosticCommandWitPackagePath)</NetWasmWitPath>
+      <NetWasmWitPath Condition="'$(NetWasmWitPath)' == '' AND '$(_NetWasmWorkerKind)' == '' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(NetWasmWamr)' != 'true'">$(NetWasmResolvedCommandWitPackagePath)</NetWasmWitPath>
+      <NetWasmCompilerWitPath Condition="'$(NetWasmCompilerWitPath)' == '' AND '$(_NetWasmWorkerKind)' != 'wit' AND '$(_NetWasmPlainCoreModule)' != 'true' AND '$(_NetWasmComponentLibrary)' != 'true' AND '$(NetWasmWamr)' != 'true'">$(NetWasmResolvedCompilerWitPackagePath)</NetWasmCompilerWitPath>
       <NetWasmCompilerWitPath Condition="'$(NetWasmCompilerWitPath)' == '' AND '$(_NetWasmComponentLibrary)' == 'true'">$(NetWasmWitPath)</NetWasmCompilerWitPath>
       <_NetWasmCompilerWitPath Condition="'$(_NetWasmCompilerWitPath)' == ''">$(NetWasmCompilerWitPath)</_NetWasmCompilerWitPath>
       <_NetWasmComponentWitPath Condition="'$(_NetWasmComponentWitPath)' == ''">$(NetWasmWitPath)</_NetWasmComponentWitPath>
@@ -223,7 +223,7 @@
       <_NetWasmRuntimeWitWorld>$(NetWasmWorld)</_NetWasmRuntimeWitWorld>
       <_NetWasmRuntimeWitPath Condition="'$(_NetWasmWorkerKind)' == 'jsexport'">$(NetWasmResolvedCommandWitPackagePath)</_NetWasmRuntimeWitPath>
       <_NetWasmRuntimeWitWorld Condition="'$(_NetWasmWorkerKind)' == 'jsexport'">command</_NetWasmRuntimeWitWorld>
-      <RunCommand Condition="'$(OutputType)' == 'Exe'">$(NetWasmNodePath)</RunCommand>
+      <RunCommand Condition="'$(OutputType)' == 'Exe' AND '$(NetWasmWamr)' != 'true'">$(NetWasmNodePath)</RunCommand>
     </PropertyGroup>
   </Target>
 
@@ -549,10 +549,10 @@
            Condition="'$(NetWasmOutputPath)' == '' OR !$([System.IO.Path]::IsPathFullyQualified('$(NetWasmOutputPath)'))"
            Text="NetWasmOutputPath must be an absolute path." />
     <Error Code="NWSDK007"
-           Condition="'$(_NetWasmWorkerKind)' != 'jsexport' AND ('$(NetWasmWitPath)' == '' OR !$([System.IO.Path]::IsPathFullyQualified('$(NetWasmWitPath)')))"
+           Condition="'$(NetWasmWamr)' != 'true' AND '$(_NetWasmWorkerKind)' != 'jsexport' AND ('$(NetWasmWitPath)' == '' OR !$([System.IO.Path]::IsPathFullyQualified('$(NetWasmWitPath)')))"
            Text="NetWasmWitPath must be an absolute path to the selected WIT package." />
     <Error Code="NWSDK024"
-           Condition="'$(NetWasmCompilerWitPath)' == '' OR !$([System.IO.Path]::IsPathFullyQualified('$(NetWasmCompilerWitPath)')) OR !Exists('$(NetWasmCompilerWitPath)')"
+           Condition="'$(NetWasmWamr)' != 'true' AND ('$(NetWasmCompilerWitPath)' == '' OR !$([System.IO.Path]::IsPathFullyQualified('$(NetWasmCompilerWitPath)')) OR !Exists('$(NetWasmCompilerWitPath)'))"
            Text="NetWasmCompilerWitPath must identify the selected compiler WIT contract." />
   </Target>
 
@@ -588,13 +588,13 @@
            Condition="!Exists('$(NetWasmCoreModuleOutputPath)')"
            Text="The NetWasm core module is unavailable for componentization." />
     <Error Code="NWSDK010"
-           Condition="'$(NetWasmRawWasm)' != 'true' AND !Exists('$(NetWasmWitPath)')"
+           Condition="'$(NetWasmRawWasm)' != 'true' AND '$(NetWasmWamr)' != 'true' AND !Exists('$(NetWasmWitPath)')"
            Text="The selected WIT world is unavailable." />
     <Error Code="NWSDK011"
            Condition="!Exists('$(NetWasmOutputPath)')"
            Text="The central componentization target completed without producing NetWasmOutputPath." />
     <Error Code="NWSDK012"
-           Condition="'$(NetWasmRawWasm)' != 'true' AND '$(_NetWasmPlainCoreModule)' != 'true' AND ('$(NetWasmComponentManifestPath)' == '' OR !Exists('$(NetWasmComponentManifestPath)'))"
+           Condition="'$(NetWasmRawWasm)' != 'true' AND '$(NetWasmWamr)' != 'true' AND '$(_NetWasmPlainCoreModule)' != 'true' AND ('$(NetWasmComponentManifestPath)' == '' OR !Exists('$(NetWasmComponentManifestPath)'))"
            Text="The central componentization target completed without producing the component manifest." />
   </Target>
 
@@ -609,7 +609,7 @@
   <Target Name="NetWasmSdkPublishCoreModule"
           BeforeTargets="Publish"
           DependsOnTargets="NetWasmSdkComponentize"
-          Condition="'$(TargetFramework)' == 'netwasm0.1' AND ('$(_NetWasmPlainCoreModule)' == 'true' OR '$(_NetWasmComponentLibrary)' == 'true') AND '$(IsPublishable)' == 'true'">
+          Condition="'$(TargetFramework)' == 'netwasm0.1' AND ('$(_NetWasmPlainCoreModule)' == 'true' OR '$(_NetWasmComponentLibrary)' == 'true' OR '$(NetWasmWamr)' == 'true') AND '$(IsPublishable)' == 'true'">
     <Copy SourceFiles="$(NetWasmOutputPath)"
           DestinationFiles="$(PublishDir)$(AssemblyName).wasm"
           SkipUnchangedFiles="true" />
@@ -724,7 +724,7 @@
           AfterTargets="NetWasmSdkComponentize"
           BeforeTargets="Run"
           DependsOnTargets="NetWasmSdkValidateFinalArtifactForNoBuild;NetWasmSdkComponentize;NetWasmValidateCompilerArtifacts;NetWasmSdkResolveExecutionArguments;NetWasmSdkPrepareTimeZoneSidecar;_NetWasmPrepareRawAdapterArtifact;_NetWasmValidateJavaScriptItems"
-          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe' AND '$(DesignTimeBuild)' != 'true'">
+          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe' AND '$(NetWasmWamr)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
     <NetWasmReadCompilerBuildMetadataTask MetadataPath="$(NetWasmCompilerMetadataPath)">
       <Output TaskParameter="Target" PropertyName="_NetWasmCompilerMetadataTarget" />
       <Output TaskParameter="DeploymentRuntimeFeatures" ItemName="_NetWasmRuntimeFeature" />
@@ -907,7 +907,7 @@
   <Target Name="NetWasmSdkPrepareRunChannels"
           BeforeTargets="Run"
           DependsOnTargets="NetWasmSdkPrepareLocalDeployment"
-          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe'">
+          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe' AND '$(NetWasmWamr)' != 'true'">
     <Delete Files="$(NetWasmExecutionResultPath)" />
   </Target>
 
@@ -918,7 +918,7 @@
            Condition="!Exists('$(NetWasmOutputPath)')"
            Text="No-build NetWasm execution requires an existing final component at NetWasmOutputPath." />
     <Error Code="NWSDK014"
-           Condition="'$(NetWasmRawWasm)' != 'true' AND ('$(NetWasmComponentManifestPath)' == '' OR !Exists('$(NetWasmComponentManifestPath)'))"
+           Condition="'$(NetWasmRawWasm)' != 'true' AND '$(NetWasmWamr)' != 'true' AND ('$(NetWasmComponentManifestPath)' == '' OR !Exists('$(NetWasmComponentManifestPath)'))"
            Text="No-build NetWasm execution requires the component manifest from the matching componentization." />
     <Error Code="NWSDK047"
            Condition="'$(_NetWasmWorkerKind)' == 'jsexport' AND (!Exists('$(NetWasmRawAdapterPath)') OR !Exists('$(NetWasmRawBindingManifestPath)') OR !Exists('$(NetWasmInteropManifestPath)') OR !Exists('$(NetWasmRuntimeLayoutPath)'))"
@@ -935,7 +935,7 @@
   <Target Name="NetWasmSdkPublishPortable"
           BeforeTargets="Publish"
           DependsOnTargets="NetWasmSdkPrepareLocalDeployment;NetWasmSdkValidateFinalArtifactForNoBuild"
-          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe' AND '$(NetWasmPublishTargetNormalized)' == 'portable' AND '$(IsPublishable)' == 'true'">
+          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe' AND '$(NetWasmWamr)' != 'true' AND '$(NetWasmPublishTargetNormalized)' == 'portable' AND '$(IsPublishable)' == 'true'">
     <ItemGroup>
       <_NetWasmPortableDeploymentFile Include="$(NetWasmDeploymentRoot)/**/*" />
     </ItemGroup>
@@ -1662,12 +1662,16 @@
       <RunArguments>&quot;$(MSBuildThisFileDirectory)netwasm-serve.mjs&quot; --site &quot;$(_NetWasmSiteMapPath)&quot;</RunArguments>
       <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(NetWasmWamr)' == 'true'">
+      <RunCommand>$(NetWasmIwasmPath)</RunCommand>
+      <RunArguments>--interp &quot;$(NetWasmOutputPath)&quot;</RunArguments>
+    </PropertyGroup>
   </Target>
 
   <Target Name="NetWasmSdkValidateRun"
           BeforeTargets="Run"
           DependsOnTargets="NetWasmSdkValidateFinalArtifactForNoBuild;NetWasmSdkPrepareRunChannels"
-          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe'">
+          Condition="'$(TargetFramework)' == 'netwasm0.1' AND '$(OutputType)' == 'Exe' AND '$(NetWasmWamr)' != 'true'">
     <Error Code="NWSDK019"
            Condition="'$(NetWasmNodePath)' == '' OR !$([System.IO.Path]::IsPathFullyQualified('$(NetWasmNodePath)')) OR !Exists('$(NetWasmNodePath)')"
            Text="NetWasm run requires a validated system Node executable." />

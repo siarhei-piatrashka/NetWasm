@@ -19,6 +19,7 @@ internal static class NwcHelp
         "                              point (default)",
         "-target:library               Build a library",
         "-target:function              Build a module whose entry is one static method",
+        "-wamrcommand                  Compile a WIT-free wasm32 WAMR command",
         "-target:coremodule            Build a library of a WIT world as a plain core",
         "                              module, without WASI",
         "-entry:<type>::<method>       The static method -target:function enters",

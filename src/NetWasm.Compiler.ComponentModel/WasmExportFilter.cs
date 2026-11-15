@@ -13,6 +13,7 @@ public sealed class WasmExportFilter
     private readonly string? _prefix;
     private readonly Dictionary<string, byte> _removed = new(StringComparer.Ordinal);
     private readonly HashSet<string> _matched = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, byte>? _kept;
     private int _memoryExports;
 
     public WasmExportFilter(WasmExportSelection selection)
@@ -20,6 +21,18 @@ public sealed class WasmExportFilter
         ArgumentNullException.ThrowIfNull(selection);
         if (selection.RemovedExports.IsDefault)
             throw ComponentException.Invalid("core module export selection is uninitialized");
+        if (!selection.KeptExports.IsDefault)
+        {
+            if (selection.ComponentPrefix is not null || !selection.RemovedExports.IsEmpty)
+                throw ComponentException.Invalid("core module export selection combines incompatible policies");
+            _kept = new(StringComparer.Ordinal);
+            foreach (var export in selection.KeptExports)
+            {
+                if (export is null || string.IsNullOrWhiteSpace(export.Name) || export.Kind > 4 ||
+                    !_kept.TryAdd(export.Name, export.Kind))
+                    throw ComponentException.Invalid("core module retained export selection is invalid");
+            }
+        }
         if (selection.ComponentPrefix is { } prefix)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
@@ -38,6 +51,14 @@ public sealed class WasmExportFilter
     public bool Keeps(string name, byte kind)
     {
         ArgumentNullException.ThrowIfNull(name);
+        if (_kept is not null)
+        {
+            if (!_kept.TryGetValue(name, out var expected))
+                return false;
+            if (expected != kind || !_matched.Add(name))
+                throw ComponentException.Invalid("core module retained export has a conflicting kind or identity");
+            return true;
+        }
         if (_prefix is not null && string.Equals(name, _prefix + "_memory", StringComparison.Ordinal) &&
             kind == WasmBinaryFormat.MemoryExternalKind)
         {
@@ -55,6 +76,12 @@ public sealed class WasmExportFilter
     // After every export: what the selection requires of the module as a whole.
     public void Complete()
     {
+        if (_kept is not null)
+        {
+            if (_matched.Count != _kept.Count)
+                throw ComponentException.Invalid("core module is missing a required retained export");
+            return;
+        }
         if (_prefix is not null && _memoryExports != 1)
         {
             throw ComponentException.Invalid(

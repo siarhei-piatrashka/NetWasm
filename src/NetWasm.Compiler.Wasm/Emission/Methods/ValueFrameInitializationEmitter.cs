@@ -112,7 +112,7 @@ internal sealed class ValueFrameInitializationEmitter(
         {
             var size = (storage.Size - written) switch
             {
-                >= 16 => 16,
+                >= 16 when !context.UseScalarMemoryOperations => 16,
                 >= 8 => 8,
                 >= 4 => 4,
                 >= 2 => 2,

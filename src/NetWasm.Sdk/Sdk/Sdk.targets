@@ -78,11 +78,19 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netwasm0.1'">
     <NetWasmTarget Condition="'$(NetWasmTarget)' == ''">wasm32</NetWasmTarget>
-    <NetWasmStructuredDiagnostics Condition="'$(NetWasmStructuredDiagnostics)' == '' AND '$(Configuration)' == 'Debug'">true</NetWasmStructuredDiagnostics>
+    <NetWasmStructuredDiagnostics Condition="'$(NetWasmStructuredDiagnostics)' == '' AND '$(Configuration)' == 'Debug' AND '$(NetWasmWamr)' != 'true'">true</NetWasmStructuredDiagnostics>
     <NetWasmStructuredDiagnostics Condition="'$(NetWasmStructuredDiagnostics)' == ''">false</NetWasmStructuredDiagnostics>
     <!-- Raw mode emits core and materialized runtime modules while leaving
          componentization to an external linker or qualification harness. -->
     <NetWasmRawWasm Condition="'$(NetWasmRawWasm)' == ''">false</NetWasmRawWasm>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(NetWasmWamr)' == 'true'">
+    <NetWasmStructuredDiagnostics Condition="'$(NetWasmStructuredDiagnostics)' == ''">false</NetWasmStructuredDiagnostics>
+    <NetWasmManagedStackTrace Condition="'$(NetWasmManagedStackTrace)' == ''">false</NetWasmManagedStackTrace>
+    <NetWasmTypeNames Condition="'$(NetWasmTypeNames)' == ''">false</NetWasmTypeNames>
+    <NetWasmManagedLoopVectorization Condition="'$(NetWasmManagedLoopVectorization)' == ''">Disabled</NetWasmManagedLoopVectorization>
+    <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
   </PropertyGroup>
 
   <!-- Cross-targeting builds intentionally skip the inner TFM inference
@@ -142,6 +150,8 @@
        component/runtime input contract after stock target evaluation. -->
   <Import Project="$(MSBuildThisFileDirectory)NetWasm.Toolchain.targets"
           Condition="Exists('$(MSBuildThisFileDirectory)NetWasm.Toolchain.targets')" />
+  <Import Project="$(MSBuildThisFileDirectory)NetWasm.Wamr.targets"
+          Condition="'$(NetWasmWamr)' == 'true'" />
 
   <UsingTask TaskName="NetWasm.Sdk.Pack.Restore.CanonicalRestoreGraphMsBuildTask"
              AssemblyFile="$(NetWasmSdkPackTaskAssemblyFile)"

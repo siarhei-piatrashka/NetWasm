@@ -63,6 +63,9 @@ public sealed class NetWasmLinkRawModuleTask : Microsoft.Build.Utilities.Task
     [Required]
     public string Target { get; set; } = string.Empty;
 
+    public bool WamrCommand { get; set; }
+    public string InputAssemblyPath { get; set; } = string.Empty;
+
     public string Optimization { get; set; } = "Oz";
     public string ManagedInliningHints { get; set; } = "Auto";
 
@@ -95,17 +98,23 @@ public sealed class NetWasmLinkRawModuleTask : Microsoft.Build.Utilities.Task
             var internalExports = _exports.Read(InternalRuntimeExports);
             var internalApplicationExports = _exports.Read(
                 InternalApplicationExports);
-            using var session = _sessions.Create(
-                CompilerTaskComposition.CreateWasmToolsCommand(
-                    WasmToolsNodePath,
-                    WasmToolsCommandPath,
-                    WasmToolsModulePath,
-                    NativeWasmToolsPath),
-                CompilerTaskComposition.CreateBinaryenConfiguration(
-                    WasmToolsNodePath,
-                    BinaryenWasmOptPath,
-                    BinaryenWasmMergePath,
-                    NullIfEmpty(NativeBinaryenWasmOptPath)));
+            var wasmTools = CompilerTaskComposition.CreateWasmToolsCommand(
+                WasmToolsNodePath, WasmToolsCommandPath, WasmToolsModulePath, NativeWasmToolsPath);
+            var binaryen = CompilerTaskComposition.CreateBinaryenConfiguration(
+                WasmToolsNodePath, BinaryenWasmOptPath, BinaryenWasmMergePath,
+                NullIfEmpty(NativeBinaryenWasmOptPath));
+            if (WamrCommand)
+            {
+                var entryPoint = new Compilation.ManagedEntryPointReader().Read(InputAssemblyPath);
+                using var command = CompilerTaskComposition.CreateWamrCommandBuildSession(wasmTools, binaryen);
+                command.Link(new(CoreModulePath, RuntimeModulePath, OutputPath, componentTarget, optimization)
+                {
+                    OptimizationOverrides = optimizationOverrides,
+                }, entryPoint.Abi);
+                Modules = [CreateModuleItem()];
+                return true;
+            }
+            using var session = _sessions.Create(wasmTools, binaryen);
             session.Link(new(
                 CoreModulePath,
                 RuntimeModulePath,
@@ -127,6 +136,7 @@ public sealed class NetWasmLinkRawModuleTask : Microsoft.Build.Utilities.Task
         }
         catch (Exception exception)
         {
+            Log.LogMessage(MessageImportance.Low, exception.ToString());
             Log.LogError($"NWSDK026: {exception.Message}");
             return false;
         }
@@ -135,10 +145,10 @@ public sealed class NetWasmLinkRawModuleTask : Microsoft.Build.Utilities.Task
     private TaskItem CreateModuleItem()
     {
         var item = new TaskItem(Path.GetFullPath(OutputPath));
-        item.SetMetadata("Kind", "RawModule");
+        item.SetMetadata("Kind", WamrCommand ? "WasiCommand" : "RawModule");
         item.SetMetadata("MediaType", "application/wasm");
         item.SetMetadata("WasmTarget", Target);
-        item.SetMetadata("WasiVersion", "0.2");
+        item.SetMetadata("WasiVersion", WamrCommand ? "0.1" : "0.2");
         return item;
     }
 

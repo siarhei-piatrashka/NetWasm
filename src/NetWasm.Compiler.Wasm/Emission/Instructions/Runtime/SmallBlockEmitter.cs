@@ -100,7 +100,8 @@ internal static class SmallBlockEmitter
     // Zeroes a block whose size the compiler knows, as initobj and default(T)
     // do: up to 64 bytes, a store of 16, 8, 4, 2 or 1 bytes for each part,
     // which a small struct needs only a few of.
-    public static bool TryEmitKnownSizeZero(IWasmInstructionWriter code, int destination, int size)
+    public static bool TryEmitKnownSizeZero(
+        IWasmInstructionWriter code, int destination, int size, bool scalar = false)
     {
         if (size > KnownSizeZeroLimit)
         {
@@ -110,7 +111,7 @@ internal static class SmallBlockEmitter
         {
             var width = (size - written) switch
             {
-                >= 16 => 16,
+                >= 16 when !scalar => 16,
                 >= 8 => 8,
                 >= 4 => 4,
                 >= 2 => 2,
@@ -241,7 +242,7 @@ internal static class SmallBlockEmitter
     }
 
     public static bool CanInlineKnownSizeCopy(MethodEmissionContext context, int size) =>
-        context.InlineSmallBlocks && size <= InlineLimit && context.CopyDestinationTemporary >= 0 &&
+        !context.UseScalarMemoryOperations && context.InlineSmallBlocks && size <= InlineLimit && context.CopyDestinationTemporary >= 0 &&
         context.CopySourceTemporary >= 0;
 
     // Expects the destination and then the source address on the stack.

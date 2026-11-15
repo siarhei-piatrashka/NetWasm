@@ -247,8 +247,9 @@ internal sealed class CompilationEmissionBuilder(
                 preparation.OptimizationSettings.ScalarCallPreservation ==
                 ScalarCallPreservationPolicy.Conservative,
             InlineSmallBlockOperations =
-                preparation.OptimizationSettings.SmallBlockOperations ==
+                !options.WamrCommand && preparation.OptimizationSettings.SmallBlockOperations ==
                 SmallBlockOperationPolicy.Inline,
+            UseScalarMemoryOperations = options.WamrCommand,
             InlineArrayData =
                 preparation.OptimizationSettings.InlineArrayData ==
                 InlineArrayDataPolicy.Inline,

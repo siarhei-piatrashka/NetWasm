@@ -56,6 +56,11 @@ internal sealed class SmallValueCopyEmitter(
     {
         ValueCopyContract.Validate(
             code, destinationLocal, size, alignment, widestChunk, emitSource);
+        if (inlineContext?.UseScalarMemoryOperations == true)
+        {
+            bulk.Emit(code, destinationLocal, size, alignment, widestChunk, emitSource, inlineContext);
+            return;
+        }
         if (size != InlineSize)
         {
             // Where the method inlines small blocks, other sizes copy in exact

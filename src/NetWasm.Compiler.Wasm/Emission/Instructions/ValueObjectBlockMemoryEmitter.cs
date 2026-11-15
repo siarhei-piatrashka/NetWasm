@@ -44,7 +44,7 @@ internal sealed class ValueObjectBlockMemoryEmitter(
         var slot = request.Stack.Count - 1;
         var layout = values.GetValueLayout(types.Resolve(request.Instruction, request.Header.MethodInstance));
         var address = GetStackLocal(request.Context, slot, request.Stack[slot]);
-        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, address, layout.Size))
+        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, address, layout.Size, request.Target.UseScalarMemoryOperations))
         {
             code.Write(WasmInstruction.WithOperand(WasmOpcodes.LocalGet, WasmInstructionOperand.Unsigned((uint)address)));
             code.Write(WasmInstruction.WithOperand(WasmOpcodes.I32Constant, WasmInstructionOperand.Signed(0)));
@@ -129,7 +129,7 @@ internal sealed class ValueObjectBlockMemoryEmitter(
             request.Instruction.Offset];
         EmitValueFrameAddress(code, request.Context, offset);
         code.Write(WasmInstruction.WithOperand(WasmOpcodes.LocalSet, WasmInstructionOperand.Unsigned((uint)(request.Context.ObjectTemporary))));
-        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, request.Context.ObjectTemporary, layout.Size))
+        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, request.Context.ObjectTemporary, layout.Size, request.Target.UseScalarMemoryOperations))
         {
             code.Write(WasmInstruction.WithOperand(WasmOpcodes.LocalGet, WasmInstructionOperand.Unsigned((uint)(request.Context.ObjectTemporary))));
             code.Write(WasmInstruction.WithOperand(WasmOpcodes.I32Constant, WasmInstructionOperand.Signed(0)));

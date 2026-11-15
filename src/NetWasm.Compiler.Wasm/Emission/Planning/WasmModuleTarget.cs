@@ -56,6 +56,7 @@ internal sealed record WasmModuleTarget(
         EliminateArrayStoreChecks = Request.EliminateArrayStoreChecks,
         EnableScalarCallPreservation = Request.EnableScalarCallPreservation,
         InlineSmallBlockOperations = Request.InlineSmallBlockOperations,
+        UseScalarMemoryOperations = Request.UseScalarMemoryOperations,
         InlineArrayData = Request.InlineArrayData,
         InlineObjectAllocation = Request.InlineObjectAllocation,
         RootMaps = Lookups.Of(Request.Methods.Values.Select(method =>
@@ -95,6 +96,7 @@ internal sealed record InstructionModuleTarget(
     public bool EliminateArrayStoreChecks { get; init; }
     public bool EnableScalarCallPreservation { get; init; }
     public bool InlineSmallBlockOperations { get; init; }
+    public bool UseScalarMemoryOperations { get; init; }
     public bool InlineArrayData { get; init; }
     public bool InlineObjectAllocation { get; init; }
     public ObjectAllocationPolicy ObjectAllocation => new(RuntimeImportSelection, InlineObjectAllocation);

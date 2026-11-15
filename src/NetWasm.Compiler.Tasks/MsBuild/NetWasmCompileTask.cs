@@ -72,6 +72,7 @@ public sealed class NetWasmCompileTask : ToolTask
     public bool CompileAsLibrary { get; set; }
     // A plain core module of the selected WIT world, without WASI (-target:coremodule).
     public bool PlainCoreModule { get; set; }
+    public bool WamrCommand { get; set; }
     public bool UseJavaScriptExportBoundary { get; set; }
     public bool NoLogo { get; set; }
     public string Optimization { get; set; } = "Oz";
@@ -188,6 +189,8 @@ public sealed class NetWasmCompileTask : ToolTask
             ? "-target:coremodule"
             : CompileAsLibrary ? "-target:library" : "-target:exe");
         builder.AppendSwitchIfNotNull("-platform:", Target);
+        if (WamrCommand)
+            builder.AppendSwitch("-wamrcommand");
         builder.AppendSwitchIfNotNull("-optimize:", Optimization);
         builder.AppendSwitchIfNotNull("-out:", CoreModulePath);
         foreach (var reference in References)

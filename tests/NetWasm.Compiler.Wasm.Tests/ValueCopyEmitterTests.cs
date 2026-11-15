@@ -7,6 +7,26 @@ namespace NetWasm.Compiler.Wasm.Tests;
 
 public sealed class ValueCopyEmitterTests
 {
+    [Fact]
+    public void ScalarMemoryPolicyUsesBulkCopyEvenForSixteenBytes()
+    {
+        var emitter = CreateSmall(new RecordingLayoutProvider());
+        var code = new EmitterTestSupport.RecordingInstructionWriter();
+        var context = EmitterTestSupport.CreateMethodEmissionContext() with
+        {
+            UseScalarMemoryOperations = true,
+            InlineSmallBlocks = true,
+            CopyDestinationTemporary = 30,
+            CopySourceTemporary = 31,
+        };
+        WriteLocalGet(code, 7);
+
+        emitter.Emit(code, 7, 16, 8, 16, writer => WriteLocalGet(writer, 8), context);
+
+        Assert.Contains(code.ToInstructions(), IsMemoryCopy);
+        Assert.DoesNotContain(code.ToInstructions(), instruction => instruction.Opcode == WasmOpcodes.SimdPrefixed);
+    }
+
     [Theory]
     [InlineData(15)]
     [InlineData(16)]

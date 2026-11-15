@@ -13,7 +13,10 @@ public interface IWasmCoreModuleExportEditor
 
 public sealed record WasmInternalExport(string Name, byte Kind);
 
-public sealed record WasmExportSelection(string? ComponentPrefix, ImmutableArray<WasmInternalExport> RemovedExports);
+public sealed record WasmExportSelection(string? ComponentPrefix, ImmutableArray<WasmInternalExport> RemovedExports)
+{
+    public ImmutableArray<WasmInternalExport> KeptExports { get; init; }
+}
 
 public sealed class WasmCoreModuleExportEditor(
     IFileExistence files,

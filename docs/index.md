@@ -39,6 +39,8 @@ repository.
 - [Targets and output formats](targets-and-outputs.md) — wasm32/wasm64 core
   modules, Component Model packaging, `cm32p2`/`cm64p2`, and WASI version
   boundaries.
+- [WAMR and ESP32-C6](wamr.md): the experimental WIT-free command target,
+  legacy exception handling, `iwasm` results and device qualification limits.
 - [C# Web Workers](web-workers.md): publish WIT workers or JavaScript modules
   in a worker, call the generated JavaScript client, exchange notifications, and
   manage worker lifecycle.

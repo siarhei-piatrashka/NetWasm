@@ -71,7 +71,7 @@ internal sealed record UnitRuntimeObjectLayout(
 internal static class UnitPlanCodec
 {
     private const uint Magic = 0x4C504E4E; // "NNPL"
-    private const int Version = 8;
+    private const int Version = 9;
 
     public static byte[] Encode(InstructionModuleTarget target, IRuntimeObjectLayout runtimeObjects, UnitProgramFacts program)
     {
@@ -127,6 +127,7 @@ internal static class UnitPlanCodec
         writer.Bool(target.EliminateArrayStoreChecks);
         writer.Bool(target.EnableScalarCallPreservation);
         writer.Bool(target.InlineSmallBlockOperations);
+        writer.Bool(target.UseScalarMemoryOperations);
         writer.Bool(target.InlineArrayData);
         writer.Bool(target.InlineObjectAllocation);
         writer.Int(runtimeObjects.StringLengthOffset);
@@ -203,6 +204,7 @@ internal static class UnitPlanCodec
             EliminateArrayStoreChecks = reader.Bool(),
             EnableScalarCallPreservation = reader.Bool(),
             InlineSmallBlockOperations = reader.Bool(),
+            UseScalarMemoryOperations = reader.Bool(),
             InlineArrayData = reader.Bool(),
             InlineObjectAllocation = reader.Bool(),
         };

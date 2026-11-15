@@ -53,6 +53,8 @@
     <None Include="Sdk/NetWasm.Sdk.Analyzers.globalconfig" Pack="true" PackagePath="Sdk/NetWasm.Sdk.Analyzers.globalconfig" LogicalSourcePath="src/NetWasm.Sdk/Sdk/NetWasm.Sdk.Analyzers.globalconfig" />
     <None Include="Sdk/NetWasm.Toolchain.targets" Pack="true" PackagePath="Sdk/NetWasm.Toolchain.targets" LogicalSourcePath="src/NetWasm.Sdk/Sdk/NetWasm.Toolchain.targets" />
     <None Include="Sdk/NetWasm.NativeLibraries.targets" Pack="true" PackagePath="Sdk/NetWasm.NativeLibraries.targets" LogicalSourcePath="src/NetWasm.Sdk/Sdk/NetWasm.NativeLibraries.targets" />
+    <None Include="Sdk/NetWasm.Wamr.targets" Pack="true" PackagePath="Sdk/NetWasm.Wamr.targets" LogicalSourcePath="src/NetWasm.Sdk/Sdk/NetWasm.Wamr.targets" />
+    <None Include="Sdk/WamrPlatform.cs" Pack="true" PackagePath="Sdk/WamrPlatform.cs" LogicalSourcePath="src/NetWasm.Sdk/Sdk/WamrPlatform.cs" />
     <None Include="Sdk/NuGetBuildTasksPackTargets.targets" Pack="true" PackagePath="Sdk/NuGetBuildTasksPackTargets.targets" LogicalSourcePath="src/NetWasm.Sdk/Sdk/NuGetBuildTasksPackTargets.targets" />
     <None Include="Sdk/netwasm-serve.mjs" Pack="true" PackagePath="Sdk/netwasm-serve.mjs" LogicalSourcePath="src/NetWasm.Sdk/Sdk/netwasm-serve.mjs" />
     <None Include="Sdk/netwasm-dev-server.mjs" Pack="true" PackagePath="Sdk/netwasm-dev-server.mjs" LogicalSourcePath="src/NetWasm.Sdk/Sdk/netwasm-dev-server.mjs" />

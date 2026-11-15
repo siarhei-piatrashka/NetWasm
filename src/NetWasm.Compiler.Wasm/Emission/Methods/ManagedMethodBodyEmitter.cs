@@ -133,7 +133,8 @@ internal sealed class ManagedMethodBodyEmitter(
             target.FunctionIndices.ManagedThrowFunctionIndex,
             target.InlineSmallBlockOperations,
             target.InlineArrayData,
-            target.InlineObjectAllocation);
+            target.InlineObjectAllocation,
+            target.UseScalarMemoryOperations);
         return new ManagedMethodBodyEmission(
             emission.Body,
             emission.WasmInstructionCount,

@@ -38,6 +38,12 @@ when you host raw output in your own Node.js. Browser deployments use a single
 linear memory, so they do not depend on multi-memory support. The versions come
 from the [WebAssembly feature status](https://webassembly.org/features/) table.
 
+For WAMR 2.4.5, selecting a plain core module fixes the component-header
+mismatch but not the missing standardized exception-handling instructions.
+The experimental [`NetWasmWamr` command target](wamr.md) supplies a WIT-free
+Preview 1 command boundary and legacy EH lowering for EH-enabled classic
+interpreters. See its verified scope and remaining ESP32-C6 requirements.
+
 ## Per-application runtime and memory layout
 
 The runtime pack supplies relocatable archives rather than fixed-address

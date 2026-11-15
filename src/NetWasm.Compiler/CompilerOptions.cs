@@ -61,6 +61,8 @@ public sealed record CompilerOptions(
     // Component Model. Its platform services are the program's bindings or throw.
     public bool PlainCoreModule { get; init; }
 
+    public bool WamrCommand { get; init; }
+
     // The program's deployed file name, <assembly>.wasm as the SDK names it, which its sidecars' names
     // extend (App.wasm.type-symbols) and under which the program opens them.
     public string ProgramFileName =>

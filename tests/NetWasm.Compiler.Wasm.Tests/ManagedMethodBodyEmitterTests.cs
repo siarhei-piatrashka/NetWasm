@@ -509,7 +509,8 @@ StructuredMethod structured,
 OptionalFunctionIndex managedThrowFunction = default,
             bool inlineSmallBlocks = false,
             bool inlineArrayData = false,
-            bool conditionalAllocationRoots = false)
+            bool conditionalAllocationRoots = false,
+            bool useScalarMemoryOperations = false)
         {
             Method = method;
             HoistArrayNullChecks = hoistArrayNullChecks;

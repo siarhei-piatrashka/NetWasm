@@ -36,6 +36,7 @@ internal static class UnitTargetFingerprint
         answer.Add(target.EliminateArrayStoreChecks);
         answer.Add(target.EnableScalarCallPreservation);
         answer.Add(target.InlineSmallBlockOperations);
+        answer.Add(target.UseScalarMemoryOperations);
         answer.Add(target.InlineArrayData);
         answer.Add(target.InlineObjectAllocation);
         answer.Add(target.CollectManagedMethodMemoryMetrics);

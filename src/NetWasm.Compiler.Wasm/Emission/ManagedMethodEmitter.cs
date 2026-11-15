@@ -70,7 +70,8 @@ internal sealed class ManagedMethodEmitter(
         OptionalFunctionIndex managedThrowFunction = default,
         bool inlineSmallBlocks = false,
         bool inlineArrayData = false,
-        bool conditionalAllocationRoots = false)
+        bool conditionalAllocationRoots = false,
+        bool useScalarMemoryOperations = false)
     {
         ArgumentNullException.ThrowIfNull(method);
         ArgumentNullException.ThrowIfNull(structured);
@@ -147,6 +148,7 @@ internal sealed class ManagedMethodEmitter(
             ValueFrameReferences = references,
             LoopRotation = loopRotation,
             InlineSmallBlocks = inlineSmallBlocks,
+            UseScalarMemoryOperations = useScalarMemoryOperations,
             InlineArrayData = inlineArrayData,
             ConditionalAllocationRoots = conditionalAllocationRoots,
             ExactArrayStores = arrayStoreChecks.Plan(emissionStructure, eliminateArrayStoreChecks),

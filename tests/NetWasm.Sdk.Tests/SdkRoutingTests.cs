@@ -6,6 +6,30 @@ namespace NetWasm.Sdk.Tests;
 public sealed class SdkRoutingTests
 {
     [Theory]
+    [InlineData("Debug")]
+    [InlineData("Release")]
+    public void WamrCommandsNeedNoWitAndDoNotUseComponentDeployment(string configuration)
+    {
+        using var project = EvaluationProject.Create("""
+            <TargetFramework>netwasm0.1</TargetFramework>
+            <OutputType>Exe</OutputType>
+            <NetWasmWamr>true</NetWasmWamr>
+            """, configuration: configuration, includeCompilerTargets: true);
+
+        Assert.Equal("Exe", project.Property("OutputType"));
+        Assert.Empty(project.Property("NetWasmWitPath"));
+        Assert.Empty(project.Property("NetWasmCompilerWitPath"));
+        Assert.Empty(project.Property("NetWasmCompilerWitWorld"));
+        Assert.Equal("NetWasmWamrLinkCommand", project.Property("NetWasmComponentizeDependsOn"));
+        Assert.Equal("wasip1-command", project.Property("NetWasmDeploymentKind"));
+        Assert.Equal("false", project.Property("NetWasmStructuredDiagnostics"));
+        Assert.Equal("false", project.Property("NetWasmManagedStackTrace"));
+        Assert.Equal("Disabled", project.Property("NetWasmManagedLoopVectorization"));
+        Assert.Contains(project.Items("Compile"), path =>
+            path.EndsWith("WamrPlatform.cs", StringComparison.Ordinal));
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
@@ -1514,6 +1538,9 @@ public sealed class SdkRoutingTests
                     <Message Importance="High" Text="__NETWASM_PROP__NetWasmRawWasm=$(NetWasmRawWasm)" />
                     <Message Importance="High" Text="__NETWASM_PROP__NetWasmComponentContract=$(NetWasmComponentContract)" />
                     <Message Importance="High" Text="__NETWASM_PROP__NetWasmExecutionContract=$(NetWasmExecutionContract)" />
+                    <Message Importance="High" Text="__NETWASM_PROP__NetWasmComponentizeDependsOn=$(NetWasmComponentizeDependsOn)" />
+                    <Message Importance="High" Text="__NETWASM_PROP__NetWasmDeploymentKind=$(NetWasmDeploymentKind)" />
+                    <Message Importance="High" Text="__NETWASM_ITEM__Compile=@(Compile, '{ItemSeparator}')" />
                     <Message Importance="High" Text="__NETWASM_PROP__NetWasmCompilerWitPath=$(NetWasmCompilerWitPath)" />
                     <Message Importance="High" Text="__NETWASM_PROP___NetWasmCompilerWitPath=$(_NetWasmCompilerWitPath)" />
                     <Message Importance="High" Text="__NETWASM_PROP__NetWasmCompilerWitWorld=$(NetWasmCompilerWitWorld)" />

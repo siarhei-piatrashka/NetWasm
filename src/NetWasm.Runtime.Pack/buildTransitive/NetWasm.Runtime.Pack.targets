@@ -71,7 +71,11 @@
     <ItemGroup>
       <_NetWasmRuntimePackMaterialization Remove="@(_NetWasmRuntimePackMaterialization)" />
     </ItemGroup>
-    <RuntimeMaterializationTask PlainCoreModule="$(_NetWasmPlainCoreModule)"
+    <PropertyGroup>
+      <_NetWasmRuntimeWithoutWasi>$(_NetWasmPlainCoreModule)</_NetWasmRuntimeWithoutWasi>
+      <_NetWasmRuntimeWithoutWasi Condition="'$(NetWasmWamr)' == 'true'">true</_NetWasmRuntimeWithoutWasi>
+    </PropertyGroup>
+    <RuntimeMaterializationTask PlainCoreModule="$(_NetWasmRuntimeWithoutWasi)"
                                 ManifestPath="$(NetWasmRuntimePackManifestPath)"
                                 RuntimeLayoutPath="$(NetWasmRuntimeLayoutPath)"
                                 AssetRoot="$(NetWasmRuntimePackRoot)"

@@ -219,6 +219,7 @@
     <ItemGroup>
       <_NetWasmCompilationIdentityLine Remove="@(_NetWasmCompilationIdentityLine)" />
       <_NetWasmCompilationIdentityLine Include="library=$(_NetWasmCompileAsLibrary)" />
+      <_NetWasmCompilationIdentityLine Include="wamr=$(NetWasmWamr)" />
       <_NetWasmCompilationIdentityLine Include="worker=$(_NetWasmWorkerKind)" />
       <_NetWasmCompilationIdentityLine Include="javascriptExportBoundary=$(NetWasmRawWasm)" />
       <_NetWasmCompilationIdentityLine Include="target=$(NetWasmTarget)" />
@@ -336,6 +337,7 @@
                         Sources="@(Compile)"
                         CompileAsLibrary="$(_NetWasmCompileAsLibrary)"
                         PlainCoreModule="$(_NetWasmPlainCoreModule)"
+                        WamrCommand="$(NetWasmWamr)"
                         UseJavaScriptExportBoundary="$(NetWasmRawWasm)"
                         Target="$(NetWasmTarget)"
                         CoreModulePath="$(NetWasmCoreModuleOutputPath)"
@@ -439,6 +441,7 @@
       <_NetWasmPackagingIdentityLine Include="target=$(NetWasmTarget)" />
       <_NetWasmPackagingIdentityLine Include="worker=$(_NetWasmWorkerKind)" />
       <_NetWasmPackagingIdentityLine Include="raw=$(NetWasmRawWasm)" />
+      <_NetWasmPackagingIdentityLine Include="wamr=$(NetWasmWamr)" />
       <_NetWasmPackagingIdentityLine Include="runtimeWit=$(_NetWasmRuntimeWitPath)" />
       <_NetWasmPackagingIdentityLine Include="runtimeWorld=$(_NetWasmRuntimeWitWorld)" />
       <_NetWasmRuntimeWitInput Remove="@(_NetWasmRuntimeWitInput)" />

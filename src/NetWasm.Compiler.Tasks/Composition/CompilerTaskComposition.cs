@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using NetWasm.Compiler.ComponentModel;
 using NetWasm.Compiler.ComponentModel.Node;
 using NetWasm.Compiler.ComponentModel.Raw;
+using NetWasm.Compiler.ComponentModel.Wamr;
 using NetWasm.Compiler.Tasks.Artifacts;
 using NetWasm.Compiler.Tasks.ComponentModel;
 using NetWasm.Compiler.Tasks.MsBuild;
@@ -35,6 +36,14 @@ internal static class CompilerTaskComposition
 
     public static IRawModuleLinkSessionFactory CreateRawModuleLinkSessionFactory() =>
         new RawModuleLinkSessionFactory(CreateRawModuleLinkSession);
+
+    public static WamrCommandBuildSession CreateWamrCommandBuildSession(
+        ExternalToolCommand wasmToolsCommand,
+        BinaryenToolRunnerConfiguration binaryenConfiguration)
+    {
+        var services = CreateCompilerServices(wasmToolsCommand, binaryenConfiguration);
+        return new(services, ActivatorUtilities.CreateInstance<WamrCommandLinker>(services));
+    }
 
     public static IRawBindingSessionFactory CreateRawBindingSessionFactory() =>
         new RawBindingSessionFactory(CreateRawBindingSession);

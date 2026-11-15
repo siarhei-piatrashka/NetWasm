@@ -121,6 +121,31 @@ public sealed class NativeDeclarationValidatorTests
     private static INativeDeclarationValidator Validator() =>
         Assert.IsAssignableFrom<INativeDeclarationValidator>(new NativeDeclarationValidator());
 
+    [Theory]
+    [InlineData("wasi_snapshot_preview1", true)]
+    [InlineData("wasi_snapshot_preview2", false)]
+    [InlineData("wasi:cli/stdout@0.3.0", false)]
+    [InlineData("netwasm.runtime.v1", false)]
+    public void AllowsPreview1CoreImportsButNotComponentOrRuntimeModules(string module, bool allowed)
+    {
+        var method = Method(CliTypeIdentity.FromStackKind(CliValueKind.I4));
+        method = method with
+        {
+            Definition = method.Definition with
+            {
+                NativeImport = method.Definition.NativeImport! with
+                {
+                    LibraryName = module,
+                    HasWasmImportLinkage = true,
+                },
+            },
+        };
+        if (allowed)
+            Validator().Validate(method);
+        else
+            Reject(method);
+    }
+
     private static void Reject(MethodInstanceModel method)
     {
         var error = Assert.Throws<CompilerException>(() => Validator().Validate(method));

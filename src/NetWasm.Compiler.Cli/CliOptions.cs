@@ -34,7 +34,7 @@ internal sealed record CompileCliOptions(
         "out", "reference", "r", "target", "entry", "export", "platform", "optimize", "pathmap", "source", "interopmanifest", "runtimelayout", "compilermetadata",
         "typesymbols", "methodsymbols", "typenames", "callbackobject", "wit", "world", "importmodule",
         "diagnostictrace", "diagnosticlog", "jsexportboundary", "structureddiagnostics",
-        "compiledunits", "verifycompiledunits",
+        "compiledunits", "verifycompiledunits", "wamrcommand",
         "projectdirectory", "intermediatedirectory", "wasmtools", "wasmtoolsnode", "wasmtoolscommand",
         "wasmtoolsmodule", "managedloopinvariantfieldhoisting", "managedstaticdataviewelimination",
         "managedaddresstakenvaluepromotion", "managedmethodinlining", "managedbranchprefixduplication",
@@ -69,6 +69,7 @@ internal sealed record CompileCliOptions(
     public string? DiagnosticLog { get; init; }
     public bool UseJavaScriptExportBoundary { get; init; }
     public bool StructuredDiagnostics { get; init; }
+    public bool WamrCommand { get; init; }
     // Keep and reuse compiled units in the intermediate directory; on by default.
     // Absent: on at O0 (and no optimization), off at the optimizing levels.
     public bool? CompiledUnits { get; init; }
@@ -164,6 +165,7 @@ internal sealed record CompileCliOptions(
             DiagnosticTrace = options.Single("diagnostictrace"),
             DiagnosticLog = options.Single("diagnosticlog"),
             UseJavaScriptExportBoundary = options.Toggle("jsexportboundary"),
+            WamrCommand = options.Toggle("wamrcommand"),
             StructuredDiagnostics = options.Toggle("structureddiagnostics"),
             CompiledUnits = options.Toggle("compiledunits", absent: null),
             VerifyCompiledUnits = options.Toggle("verifycompiledunits"),

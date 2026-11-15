@@ -1,0 +1,51 @@
+<Project>
+  <PropertyGroup>
+    <NetWasmCompilerWitWorld></NetWasmCompilerWitWorld>
+    <NetWasmWorld></NetWasmWorld>
+    <NetWasmComponentizeDependsOn>NetWasmWamrLinkCommand</NetWasmComponentizeDependsOn>
+    <NetWasmDeploymentKind>wasip1-command</NetWasmDeploymentKind>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netwasm0.1'">
+    <Compile Include="$(MSBuildThisFileDirectory)WamrPlatform.cs" Link="NetWasm/WamrPlatform.cs" />
+  </ItemGroup>
+  <Target Name="NetWasmWamrValidate"
+          BeforeTargets="Restore;CoreCompile;NetWasmWriteCompilationIdentity">
+    <Error Code="NWSDK104"
+           Condition="'$(TargetFramework)' != 'netwasm0.1' OR '$(OutputType)' != 'Exe' OR '$(NetWasmTarget)' != 'wasm32' OR '$(NetWasmRawWasm)' == 'true' OR '$(IsTestProject)' == 'true'"
+           Text="NetWasmWamr requires a netwasm0.1 wasm32 executable, not raw JavaScript output or a test project." />
+    <Error Code="NWSDK105"
+           Condition="'$(NetWasmWitPath)' != '' OR '$(NetWasmCompilerWitPath)' != '' OR '@(NetWasmWit)' != '' OR '@(NetWasmImportModule)' != '' OR '@(_NetWasmWorkerReference)' != ''"
+           Text="NetWasmWamr commands do not use WIT, JavaScript imports or browser workers. Remove these inputs." />
+    <Error Code="NWSDK106"
+           Condition="'$(NetWasmStructuredDiagnostics)' == 'true' OR '$(NetWasmTypeNames)' == 'true' OR '$(NetWasmManagedStackTrace)' == 'true' OR '$(NetWasmPublishTargetNormalized)' != 'portable' OR '$(NetWasmTimeZoneMode)' != '' OR '@(NetWasmTimeZone)' != ''"
+           Text="WAMR command output does not support component diagnostics, symbol/timezone sidecars or browser publishing." />
+  </Target>
+  <Target Name="NetWasmWamrLinkCommand"
+          DependsOnTargets="NetWasmRuntimePackMaterialize;NetWasmWritePackagingIdentity"
+          Inputs="$(NetWasmCoreModuleOutputPath);@(NetWasmComponentRuntime);$(NetWasmPackagingIdentityPath);$(NetWasmNativeWasmToolsPath);$(NetWasmBinaryenWasmOptPath);$(NetWasmBinaryenWasmMergePath)"
+          Outputs="$(NetWasmOutputPath)">
+    <NetWasmLinkRawModuleTask WamrCommand="true"
+                             InputAssemblyPath="@(IntermediateAssembly->'%(FullPath)')"
+                             CoreModulePath="$(NetWasmCoreModuleOutputPath)"
+                             RuntimeModulePath="@(NetWasmComponentRuntime->'%(FullPath)')"
+                             OutputPath="$(NetWasmOutputPath)"
+                             WasmToolsNodePath="$(NetWasmNodePath)"
+                             WasmToolsCommandPath="$(NetWasmWasmToolsCommandPath)"
+                             WasmToolsModulePath="$(NetWasmWasmToolsModulePath)"
+                             NativeWasmToolsPath="$(NetWasmNativeWasmToolsPath)"
+                             BinaryenWasmOptPath="$(NetWasmBinaryenWasmOptPath)"
+                             BinaryenWasmMergePath="$(NetWasmBinaryenWasmMergePath)"
+                             NativeBinaryenWasmOptPath="$(NetWasmNativeBinaryenWasmOptPath)"
+                             Target="$(NetWasmTarget)"
+                             Optimization="$(_NetWasmCanonicalOptimization)"
+                             ManagedInliningHints="$(NetWasmManagedInliningHints)"
+                             OptimizerConverge="$(NetWasmOptimizerConverge)"
+                             OptimizerLowMemoryUnused="$(NetWasmOptimizerLowMemoryUnused)" />
+  </Target>
+  <Target Name="NetWasmWamrValidateRun" BeforeTargets="Run">
+    <Error Code="NWSDK107"
+           Condition="'$(NetWasmIwasmPath)' == '' OR !Exists('$(NetWasmIwasmPath)')"
+           Text="Set NetWasmIwasmPath to an EH-enabled classic-interpreter iwasm executable, or publish and run the module with that host." />
+  </Target>
+</Project>

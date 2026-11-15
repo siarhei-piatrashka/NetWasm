@@ -20,7 +20,7 @@ public sealed class NativeDeclarationValidator : INativeDeclarationValidator
         if (import.HasWasmImportLinkage && IsReservedImportModule(import.LibraryName))
         {
             throw Unsupported(method,
-                "A [WasmImportLinkage] library name cannot be a NetWasm or WASI import module.");
+                "A [WasmImportLinkage] library name cannot be a NetWasm or WASI Component Model import module.");
         }
         if (!definition.IsStatic || definition.IsAbstract || definition.HasBody ||
             definition.GenericArity != 0 || method.DeclaringType.ContainsGenericParameters ||
@@ -65,13 +65,13 @@ public sealed class NativeDeclarationValidator : INativeDeclarationValidator
         }
     }
 
-    // NetWasm's own modules and WASI interfaces are supplied by the runtime and
-    // the component model, never by an application import.
+    // Component interfaces belong to the linker. Preview 1 instead defines
+    // ordinary core imports, used by the WAMR command platform.
     public static bool IsReservedImportModule(string module) =>
         module.StartsWith("netwasm.", StringComparison.Ordinal) ||
         module.StartsWith("netwasm:", StringComparison.Ordinal) ||
         module.StartsWith("wasi:", StringComparison.Ordinal) ||
-        module.StartsWith("wasi_", StringComparison.Ordinal);
+        (module.StartsWith("wasi_", StringComparison.Ordinal) && module != "wasi_snapshot_preview1");
 
     private static CompilerException Unsupported(MethodInstanceModel method, string message) =>
         new(new(DiagnosticCode.NativeInterop, message, method.CanonicalName));

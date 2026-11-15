@@ -51,6 +51,8 @@ internal sealed class CompilerReproductionCommandBuilder(
         {
             arguments.Add("-jsexportboundary+");
         }
+        if (options.WamrCommand)
+            arguments.Add("-wamrcommand+");
         return string.Join(' ', arguments.Select(Quote));
     }
 

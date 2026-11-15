@@ -36,7 +36,7 @@ internal sealed class NullableUnboxAnyEmitter(
         code.Write(WasmInstruction.WithOperand(
             WasmOpcodes.LocalSet,
             WasmInstructionOperand.Unsigned((uint)request.Context.ObjectTemporary)));
-        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, request.Context.ObjectTemporary, nullable.Size))
+        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, request.Context.ObjectTemporary, nullable.Size, request.Target.UseScalarMemoryOperations))
         {
             code.Write(WasmInstruction.WithOperand(
                 WasmOpcodes.LocalGet,

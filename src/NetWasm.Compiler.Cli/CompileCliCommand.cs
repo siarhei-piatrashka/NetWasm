@@ -107,6 +107,7 @@ internal sealed class CompileCliCommand(
         {
             ImportModules = options.ImportModules,
             PlainCoreModule = options.Target == NwcTarget.CoreModule,
+            WamrCommand = options.WamrCommand,
             CompiledUnits = CompiledUnits(Environment.GetEnvironmentVariable("NETWASM_COMPILED_UNITS"), options),
             VerifyCompiledUnits = VerifiesCompiledUnits(Environment.GetEnvironmentVariable("NETWASM_COMPILED_UNITS"), options),
         });

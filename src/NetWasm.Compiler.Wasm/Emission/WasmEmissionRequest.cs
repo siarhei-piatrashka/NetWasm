@@ -103,6 +103,7 @@ public sealed record WasmEmissionRequest(
     public bool EliminateArrayStoreChecks { get; init; }
     public bool EnableScalarCallPreservation { get; init; }
     public bool InlineSmallBlockOperations { get; init; }
+    public bool UseScalarMemoryOperations { get; init; }
     // One-dimensional array elements are addressed at their inline offset.
     public bool InlineArrayData { get; init; }
     // Objects of known layout are allocated through allocate_object, which the

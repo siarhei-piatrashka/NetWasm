@@ -6,6 +6,38 @@ namespace NetWasm.Compiler.ComponentModel.Tests;
 public sealed class WasmCoreModuleExportEditorTests
 {
     [Fact]
+    public void RetainsOnlyTheRequiredCommandExports()
+    {
+        var files = new MemoryFiles(Module(
+            Export("memory", 2, 0), Export("_start", 0, 3), Export("run", 0, 1)));
+
+        new WasmCoreModuleExportEditor(files, files, files).Rewrite("input", "output", new(null, [])
+        {
+            KeptExports = [new("memory", 2), new("_start", 0)],
+        });
+
+        Assert.Equal(Module(Export("memory", 2, 0), Export("_start", 0, 3)), files.Written);
+    }
+
+    [Theory]
+    [InlineData("_start", 0, "_start", 0)]
+    [InlineData("_start", 2, "other", 0)]
+    [InlineData("other", 0, "another", 0)]
+    public void RejectsDuplicateMismatchedOrMissingRetainedExports(
+        string firstName, byte firstKind, string secondName, byte secondKind)
+    {
+        var files = new MemoryFiles(Module(
+            Export(firstName, firstKind, 0), Export(secondName, secondKind, 0)));
+
+        Assert.Throws<CompilerException>(() =>
+            new WasmCoreModuleExportEditor(files, files, files).Rewrite("input", "output", new(null, [])
+            {
+                KeptExports = [new("_start", 0)],
+            }));
+        Assert.Null(files.Written);
+    }
+
+    [Fact]
     public void RejectsMissingFileCapabilitiesBeforeModuleAccess()
     {
         var files = new MemoryFiles(Module());

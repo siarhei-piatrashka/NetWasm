@@ -149,6 +149,25 @@ internal sealed class CompilationPreparationBuilder(
         {
             HostEventLoop = options.UseJavaScriptExportBoundary,
         };
+        if (options.WamrCommand)
+        {
+            if (options.Target != WasmTarget.Wasm32 ||
+                options.EntryPointKind != CompilerEntryPointKind.ManagedExecutable ||
+                !componentContract.IsEmpty || options.UseJavaScriptExportBoundary)
+            {
+                throw new CompilerException(new CompilerDiagnostic(
+                    DiagnosticCode.ComponentContract,
+                    "a WAMR command requires a wasm32 managed executable without WIT or JavaScript bindings"));
+            }
+            world = world with
+            {
+                EventLoop = false,
+                MonotonicClock = false,
+                ProcessExit = true,
+                HostEventLoop = false,
+                Wasi = false,
+            };
+        }
         if (options.PlainCoreModule)
         {
             if (componentContract.IsEmpty || options.EntryPointKind != CompilerEntryPointKind.Library)
