@@ -58,7 +58,8 @@ public sealed class RawModuleLinkExecution(
                 request.RuntimeModulePath,
                 environment,
                 optimizerInput,
-                request.Target)
+                request.Target,
+                ManagedExecutableAdapterModulePath: request.ManagedExecutableAdapterModulePath)
             {
                 ApplicationInlineAnnotations = settings.ManagedInlineAnnotations,
                 RuntimeInlineAnnotations = settings.RuntimeInlineAnnotations,

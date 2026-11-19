@@ -13,10 +13,13 @@ public interface IRawModuleLinkInputValidator
 }
 
 public sealed class RawModuleLinkInputValidator(
-    IComponentCoreModuleInputValidator inputs) : IRawModuleLinkInputValidator
+    IComponentCoreModuleInputValidator inputs,
+    IFileExistence files) : IRawModuleLinkInputValidator
 {
     private readonly IComponentCoreModuleInputValidator _inputs = inputs ??
         throw new ArgumentNullException(nameof(inputs));
+    private readonly IFileExistence _files = files ??
+        throw new ArgumentNullException(nameof(files));
 
     public void Validate(RawModuleLinkRequest request)
     {
@@ -48,6 +51,17 @@ public sealed class RawModuleLinkInputValidator(
             string.Equals(runtime, output, StringComparison.OrdinalIgnoreCase))
         {
             throw ComponentException.Invalid("raw linking requires distinct application, runtime and output paths");
+        }
+        if (request.ManagedExecutableAdapterModulePath is { } adapterPath)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(adapterPath);
+            var adapter = Path.GetFullPath(adapterPath);
+            if (string.Equals(adapter, application, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(adapter, runtime, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(adapter, output, StringComparison.OrdinalIgnoreCase))
+                throw ComponentException.Invalid("raw linking requires a distinct command adapter path");
+            if (!_files.Exists(adapterPath))
+                throw ComponentException.Invalid($"command adapter core module '{adapterPath}' does not exist");
         }
         _inputs.Validate(new ComponentCoreModuleLinkRequest(
             request.ApplicationModulePath,

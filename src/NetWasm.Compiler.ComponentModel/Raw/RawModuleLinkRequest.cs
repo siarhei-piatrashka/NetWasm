@@ -17,4 +17,5 @@ public sealed record RawModuleLinkRequest(
     public WasmOptimizationOverrides? OptimizationOverrides { get; init; }
     public ImmutableArray<WasmInternalExport> InternalRuntimeExports { get; init; } = [];
     public ImmutableArray<WasmInternalExport> InternalApplicationExports { get; init; } = [];
+    public string? ManagedExecutableAdapterModulePath { get; init; }
 }

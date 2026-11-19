@@ -47,6 +47,20 @@ public sealed class RawModuleLinkExecutionTests
         Assert.Equal(["delete"], stages.Calls);
     }
 
+    [Fact]
+    public void MergesACommandAdapterWhenProvided()
+    {
+        var stages = new RecordingStages();
+        var request = new RawModuleLinkRequest("application", "runtime", "output", ComponentTarget.Wasm32Wasi02)
+        {
+            ManagedExecutableAdapterModulePath = "command.wasm",
+        };
+
+        CreateExecution(stages).Run(request, CreateWorkspace(stages));
+
+        Assert.Equal("command.wasm", stages.Merge!.ManagedExecutableAdapterModulePath);
+    }
+
     private sealed class RecordingSettingsResolver : IWasmOptimizationSettingsResolver
     {
         public int Calls { get; private set; }

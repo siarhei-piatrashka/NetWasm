@@ -60,7 +60,8 @@ public sealed class RawModuleLinkInputValidatorTests
         var validator = CreateValidator(inputs);
         var request = new RawModuleLinkRequest("application", "runtime", "output", ComponentTarget.Wasm32Wasi02);
 
-        Assert.Throws<ArgumentNullException>(() => new RawModuleLinkInputValidator(null!));
+        Assert.Throws<ArgumentNullException>(() => new RawModuleLinkInputValidator(null!, inputs));
+        Assert.Throws<ArgumentNullException>(() => new RawModuleLinkInputValidator(inputs, null!));
         Assert.Throws<ArgumentNullException>(() => validator.Validate(null!));
         Assert.Throws<ArgumentNullException>(() => validator.Validate(request with { Target = null! }));
         Assert.Throws<ArgumentNullException>(() => validator.Validate(request with { ApplicationModulePath = null! }));
@@ -82,7 +83,34 @@ public sealed class RawModuleLinkInputValidatorTests
     }
 
     private static IRawModuleLinkInputValidator CreateValidator(RecordingInputs inputs) =>
-        Assert.IsAssignableFrom<IRawModuleLinkInputValidator>(new RawModuleLinkInputValidator(inputs));
+        Assert.IsAssignableFrom<IRawModuleLinkInputValidator>(new RawModuleLinkInputValidator(inputs, inputs));
+
+    [Theory]
+    [InlineData("application")]
+    [InlineData("runtime")]
+    [InlineData("output")]
+    public void RejectsAdapterPathCollisions(string adapter)
+    {
+        var inputs = new RecordingInputs();
+        var request = new RawModuleLinkRequest("application", "runtime", "output", ComponentTarget.Wasm32Wasi02)
+        {
+            ManagedExecutableAdapterModulePath = adapter,
+        };
+        Assert.Throws<CompilerException>(() => CreateValidator(inputs).Validate(request));
+        Assert.Null(inputs.Request);
+    }
+
+    [Fact]
+    public void RejectsMissingAdapter()
+    {
+        var inputs = new RecordingInputs { FileExists = false };
+        var request = new RawModuleLinkRequest("application", "runtime", "output", ComponentTarget.Wasm32Wasi02)
+        {
+            ManagedExecutableAdapterModulePath = "missing.wasm",
+        };
+        Assert.Throws<CompilerException>(() => CreateValidator(inputs).Validate(request));
+        Assert.Null(inputs.Request);
+    }
 
     [Fact]
     public void InvalidExportFactsRejectBeforeAccessingInputFiles()
@@ -107,10 +135,13 @@ public sealed class RawModuleLinkInputValidatorTests
         Assert.Null(inputs.Request);
     }
 
-    private sealed class RecordingInputs : IComponentCoreModuleInputValidator
+    private sealed class RecordingInputs : IComponentCoreModuleInputValidator, IFileExistence
     {
         public ComponentCoreModuleLinkRequest? Request { get; private set; }
         public Exception? Failure { get; init; }
+        public bool FileExists { get; init; } = true;
+
+        public bool Exists(string path) => FileExists;
 
         public void Validate(ComponentCoreModuleLinkRequest request)
         {
