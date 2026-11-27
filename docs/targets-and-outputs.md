@@ -70,6 +70,139 @@ WIT functions may be `async func`, bound to `Task`. Use wasm32
 for Components and wasm64 for a raw core module under its explicit host
 contract.
 
+## WASI Preview 1 investigation (not implemented)
+
+The proposed target is a **wasm32 core command module**, runnable without a
+Component Model or JavaScript host. Its only external imports, if any, must
+be from `wasi_snapshot_preview1`. A `.wasm` extension or an intermediate core
+module alone does not establish that contract. Preview 1 is not supported
+today; this section is a plan, not a new build option.
+
+### Current pipeline and constraints
+
+- `src/NetWasm.Sdk/Sdk/Sdk.targets` defaults `NetWasmTarget` to `wasm32`;
+  this property selects address width, not a WASI version. In
+  `NetWasm.Toolchain.targets`, the SDK routes ordinary executables through
+  `NetWasmComponentizeDependsOn`, and `NetWasmRawWasm=true` through
+  `NetWasmRawBuildDependsOn`. Both write `NetWasmOutputPath`. The task targets
+  in `src/NetWasm.Compiler.Tasks/buildTransitive/NetWasm.Compiler.Tasks.targets`
+  materialize the runtime and then componentize or link the raw module.
+  The compiler CLI's `-platform` likewise selects width; `nwc componentize`
+  is a separate operation. Neither is a Preview 1 selector.
+- The default component path uses WASI 0.3; its intermediate runtime uses
+  `cm32p2`-prefixed component imports. Raw output has an explicit JavaScript
+  host contract, not a WASI command ABI. The runtime import policy and raw
+  import validators deliberately reject Preview 1. Do not relax those
+  checks for existing targets.
+- The pinned Emscripten/LLVM toolchain and runtime pack build relocatable
+  archives, linked against an Emscripten system-library closure. The runtime
+  intentionally replaces libc functions that would import Preview 1 in
+  `src/NetWasm.Runtime/runtime_posix_unavailable.c`; component console,
+  environment, clock, random and exit code use WASI 0.3 interfaces. Linking
+  this closure unchanged cannot provide a standalone Preview 1 host contract.
+  Internal `netwasm.application.v1` imports also need to be resolved by
+  linking, not left for the WASI runtime.
+- NetWasm emits modern Wasm features including exception handling; Preview 1
+  describes the host ABI, not an engine feature level. A candidate runtime
+  must support the emitted instructions. Managed threads, component/WIT
+  services, JavaScript imports and the existing asynchronous host facilities
+  cannot be assumed available under Preview 1. Filesystem access requires
+  explicit preopens; networking and other unsupported APIs need a defined
+  failure or exclusion, not an implicit component host.
+
+### Recommended approach
+
+Add a distinct, explicitly selected SDK output mode, for example a future
+`NetWasmOutputKind=WasiPreview1` for executables; the exact property name is
+to be finalized during implementation. It is **not** available now. Leave
+the unset value and `NetWasmRawWasm` routing unchanged, keep
+`NetWasmTarget=wasm32` as the width selection, and reject incompatible
+combinations (including wasm64, WIT/component and JavaScript-host modes)
+with a clear diagnostic rather than silently falling back.
+
+Prototype a separate runtime/system-library closure using a pinned
+[wasi-sdk](https://github.com/WebAssembly/wasi-sdk) targeting
+`wasm32-wasip1`, with compatible LLVM/LLD and Wasm exception support verified
+against the compiler output. This supplies a Preview 1 libc and command
+startup; it does not by itself convert NetWasm's component imports. An
+alternative is to retain the Emscripten closure and implement a dedicated
+Preview 1 bridge, but its standalone stubs, Emscripten-specific symbols and
+deliberate import exclusions make that a larger ABI audit. Neither option has
+been proven end to end. Pin and package any new tools, sysroot, archives and
+licenses separately, and check exception ABI, static native libraries,
+linking/optimization and target feature compatibility before committing to one.
+
+The new path needs target-specific runtime implementations for the supported
+subset: map console output to `fd_write`, arguments/environment, clocks,
+random and process exit to their Preview 1 equivalents as needed; define
+errors for unavailable features. Avoid the existing 0.3 canonical ABI and
+async stream machinery. Provide a command `_start` that initializes the
+linked application/runtime once, invokes the managed entry point, handles its
+exit status and failures, and respects collection/finalization requirements.
+Resolve application/runtime cross-imports internally and reject unresolved
+non-Preview 1 imports in the *final* artifact. Preserve the existing runtime
+layout, ABI and collector invariants; do not assume a libc startup object alone
+initializes NetWasm.
+
+### Implementation and qualification steps
+
+1. Establish a minimal synchronous console-command scope and document the
+   supported API surface, exit behavior, capability grants and explicit
+   failures. Prototype the sysroot and feature compatibility before promising
+   broader API or native-library support.
+2. Add the separate selector, validation, build routing and isolated runtime
+   pack/identity and incremental-build inputs. Keep output paths and deployment
+   metadata distinct enough to prevent stale artifacts when switching modes.
+   Do not run componentization, `jco`, a JS adapter or component deployment
+   for this mode.
+3. Implement and link the Preview 1 runtime bridge and command entry point;
+   audit the reachable CoreLib and native-library imports, GC lifecycle and
+   error paths. Add a target-specific final-import allowlist and tests for
+   rejected combinations and unexpected imports, including 0.2/0.3,
+   `wasi_unstable`, JS and unresolved NetWasm imports.
+4. Add unit/routing tests and an end-to-end console fixture that checks
+   arguments, stdout, exit status, initialization and a failure path. Test
+   filesystem preopens and clocks/random only when those APIs are claimed.
+   Run against the project's pinned Wasmtime version, recording the version,
+   required feature settings and any blockers; do not infer support merely
+   from the Preview 1 ABI.
+5. Before and after the change, use clean builds of the same
+   `dotnet new netwasm-app` fixture with the same pinned tools: run
+   `dotnet build`, `dotnet run`, and `dotnet publish`; also build and run the
+   existing `NetWasmRawWasm=true` executable path. Compare artifact names,
+   format, imports, deployment manifests/sidecars and observable output and
+   exit status; compare hashes where deterministic and investigate any
+   differences. Run existing SDK routing and component/raw end-to-end tests.
+   The selector being absent must not change existing commands or outputs.
+
+### Artifact and smoke-test gate
+
+After implementation, for a freshly built `app.wasm` and a console fixture
+that prints `42`, use the pinned `wasm-tools` and Wasmtime, for example:
+
+```sh
+od -An -tx1 -N8 app.wasm
+wasm-tools validate app.wasm --features all
+wasm-tools print app.wasm > app.wat
+wasmtime --version
+wasmtime run app.wasm > stdout.txt
+cat stdout.txt
+```
+
+Require the eight header bytes `00 61 73 6d 01 00 00 00` (core version 1,
+not a component), successful validation, a core `(module ...)` in the
+printed text, and a `_start` command export. Inspect **all** final imports in
+`app.wat`: allow only functions from `wasi_snapshot_preview1`, with no
+component, JavaScript, or other host imports. An import-free module is allowed
+in general, but this console fixture must actually exercise Preview 1
+`fd_write`; do not pass it on a vacuous import check. Assert exit code zero
+and exact expected stdout (`42` plus newline), and check a deliberately
+nonzero exit separately. Run `wasmtime run` directly on the core module, with
+no component adapter or host and no preopens for this fixture. Validation with
+`--features all` is not proof that Wasmtime supports those features: runtime
+instantiation and execution are mandatory. Pin the tested Wasmtime version and
+record any necessary flags in the eventual automated test.
+
 ## Contributor and qualification rule
 
 Do not triage the known `cm64p2` result as a compiler failure. When a test asks
