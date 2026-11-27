@@ -51,7 +51,15 @@ public sealed class NativeRuntimeMetadataIntegrationTests
             Assert.Equal("internalRuntimeExports=" + JsonSerializer.Serialize(second),
                 Assert.Single(await File.ReadAllLinesAsync(identity, TestContext.Current.CancellationToken), line => line.StartsWith("internalRuntimeExports=", StringComparison.Ordinal)));
 
-            async Task RunAsync(string variant, int run)
+            var vectorIdentity = await File.ReadAllTextAsync(identity, TestContext.Current.CancellationToken);
+            Assert.Contains("simd=true", vectorIdentity, StringComparison.Ordinal);
+            await RunAsync("second", 4, "false");
+            Assert.Equal(vectorIdentity.Replace("simd=true", "simd=false", StringComparison.Ordinal),
+                await File.ReadAllTextAsync(identity, TestContext.Current.CancellationToken));
+            await RunAsync("second", 5, "true");
+            Assert.Equal(vectorIdentity, await File.ReadAllTextAsync(identity, TestContext.Current.CancellationToken));
+
+            async Task RunAsync(string variant, int run, string simd = "true")
             {
                 var start = new ProcessStartInfo("dotnet")
                 {
@@ -66,7 +74,7 @@ public sealed class NativeRuntimeMetadataIntegrationTests
                     "-p:ProbeAssembly=" + typeof(NativeRuntimeMetadataProducerTask).Assembly.Location,
                     "-p:CompilerTargets=" + Path.Combine(assets, "NetWasm.Compiler.Tasks.targets"),
                     "-p:ObservationPath=" + observation, "-p:NetWasmPackagingIdentityPath=" + identity,
-                    "-p:Variant=" + variant,
+                    "-p:Variant=" + variant, "-p:NetWasmSimd=" + simd,
                 }) start.ArgumentList.Add(argument);
                 using var process = Process.Start(start)!;
                 await using var stdout = File.Create(Path.Combine(root, $"msbuild-{run}.stdout.log"));

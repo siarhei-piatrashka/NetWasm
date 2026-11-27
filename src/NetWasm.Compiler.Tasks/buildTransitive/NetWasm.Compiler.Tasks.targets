@@ -515,6 +515,7 @@
       <_NetWasmPackagingIdentityLine Include="managedInliningHints=$(NetWasmManagedInliningHints)" />
       <_NetWasmPackagingIdentityLine Include="optimizerConverge=$(NetWasmOptimizerConverge)" />
       <_NetWasmPackagingIdentityLine Include="optimizerLowMemoryUnused=$(NetWasmOptimizerLowMemoryUnused)" />
+      <_NetWasmPackagingIdentityLine Include="simd=$(NetWasmSimd)" />
       <_NetWasmPackagingIdentityLine Include="packagingPolicyRevision=4" />
       <_NetWasmPackagingIdentityLine Include="target=$(NetWasmTarget)" />
       <_NetWasmPackagingIdentityLine Include="worker=$(_NetWasmWorkerKind)" />

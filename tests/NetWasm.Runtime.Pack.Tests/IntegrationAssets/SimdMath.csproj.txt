@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <NoStdLib>true</NoStdLib>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <NetWasmGuestFramework>true</NetWasmGuestFramework>
+    <_NetWasmBuildsModule>true</_NetWasmBuildsModule>
+    <_NetWasmCompileAsLibrary>true</_NetWasmCompileAsLibrary>
+    <_NetWasmPlainCoreModule>false</_NetWasmPlainCoreModule>
+    <NetWasmRawWasm>true</NetWasmRawWasm>
+    <NetWasmIntermediateOutputPath>$(MSBuildProjectDirectory)/intermediate/$(NetWasmTarget)/</NetWasmIntermediateOutputPath>
+    <NetWasmRuntimeCoreLibPath>$(CoreLib)</NetWasmRuntimeCoreLibPath>
+    <NetWasmCompilerPath>$(Compiler)</NetWasmCompilerPath>
+    <NetWasmRuntimePackRoot>$(RuntimeAssets)</NetWasmRuntimePackRoot>
+    <NetWasmRuntimePackSelectorAssemblyPath>$(RuntimePackAssembly)</NetWasmRuntimePackSelectorAssemblyPath>
+    <NetWasmWasmLdPath>$(HostTools)/wasm-ld$(HostExeSuffix)</NetWasmWasmLdPath>
+    <NetWasmNativeBinaryenWasmOptPath>$(HostTools)/wasm-opt$(HostExeSuffix)</NetWasmNativeBinaryenWasmOptPath>
+    <NetWasmBinaryenWasmOptPath>$(Toolchain)/binaryen/bin/wasm-opt</NetWasmBinaryenWasmOptPath>
+    <NetWasmBinaryenWasmMergePath>$(Toolchain)/binaryen/bin/wasm-merge</NetWasmBinaryenWasmMergePath>
+    <NetWasmNodePath>$(HostTools)/node$(HostExeSuffix)</NetWasmNodePath>
+    <NetWasmWasmToolsCommandPath>$(Toolchain)/wasm-tools/run-wasm-tools.mjs</NetWasmWasmToolsCommandPath>
+    <NetWasmWasmToolsModulePath>$(Toolchain)/wasm-tools/wasm-tools.wasm</NetWasmWasmToolsModulePath>
+    <NetWasmSdkVersion>source</NetWasmSdkVersion>
+    <NetWasmCompilerVersion>source</NetWasmCompilerVersion>
+    <NetWasmRuntimeVersion>source</NetWasmRuntimeVersion>
+    <NetWasmRuntimePackPackageVersion>source</NetWasmRuntimePackPackageVersion>
+    <NetWasmHostToolsPackageId>source</NetWasmHostToolsPackageId>
+    <NetWasmHostToolsPackageVersion>source</NetWasmHostToolsPackageVersion>
+    <NetWasmWasmLdVersion>pinned</NetWasmWasmLdVersion>
+    <NetWasmNativeBinaryenWasmOptVersion>pinned</NetWasmNativeBinaryenWasmOptVersion>
+    <NetWasmWasmToolsVersion>pinned</NetWasmWasmToolsVersion>
+    <NetWasmNodeVersion>pinned</NetWasmNodeVersion>
+    <NetWasmOutputPath>$(MSBuildProjectDirectory)/final.wasm</NetWasmOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NetWasm.CoreLib">
+      <HintPath>$(CoreLib)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="buildTransitive/NetWasm.Compiler.Tasks.targets" />
+  <Import Project="$(Repository)/src/NetWasm.Runtime.Pack/buildTransitive/NetWasm.Runtime.Pack.targets" />
+</Project>

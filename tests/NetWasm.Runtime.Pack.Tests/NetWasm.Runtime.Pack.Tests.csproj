@@ -50,6 +50,9 @@
     <None Update="IntegrationAssets/NativeGenerator.csproj.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Update="IntegrationAssets/NativeDesktopMain.cs.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Update="IntegrationAssets/native-mule-runner.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="IntegrationAssets/SimdMath.csproj.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="IntegrationAssets/SimdMath.cs.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="IntegrationAssets/simd-math-runner.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="IntegrationAssets/hello42-dce-runner.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="IntegrationAssets/callback-cache-runner.mjs" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../TestInfrastructure/NetWasmCompiler.cs" Link="NetWasmCompiler.cs" />
