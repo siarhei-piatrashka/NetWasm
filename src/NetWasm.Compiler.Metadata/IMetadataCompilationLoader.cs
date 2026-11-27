@@ -23,5 +23,6 @@ public interface IMetadataCompilationLoader
         IEnumerable<string>? originalContractReferencePaths = null,
         INativeImportBinder? nativeBinding = null,
         INativeVariadicCallPlanner? nativeVariadics = null,
-        GeneratedJavaScriptBinding? javaScriptBinding = null);
+        GeneratedJavaScriptBinding? javaScriptBinding = null,
+        bool simd = true);
 }

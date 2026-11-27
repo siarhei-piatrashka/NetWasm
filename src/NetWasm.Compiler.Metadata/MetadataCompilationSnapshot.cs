@@ -14,6 +14,7 @@ public sealed record MetadataCompilationSnapshot(
     ImmutableArray<MethodDefinitionModel> EntryAssemblyMethods,
     ImmutableDictionary<string, string>? ReferenceAssemblyAliases = null)
 {
+    public bool Simd => Types.IsEmpty || Types[0].Simd;
     /// <summary>Original declarations, isolated from executable types and methods.</summary>
     public ImmutableArray<ManagedAssembly> OriginalContractAssemblies { get; init; } = [];
 }

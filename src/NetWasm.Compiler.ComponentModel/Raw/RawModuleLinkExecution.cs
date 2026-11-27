@@ -69,7 +69,7 @@ public sealed class RawModuleLinkExecution(
             _optimizer.Optimize(
                 optimizerInput,
                 workspace.LinkedModulePath,
-                request.Target,
+                request.Target with { Simd = request.Target.Simd && (request.OptimizationOverrides?.Simd ?? true) },
                 settings.BackendPreset,
                 settings.Converge,
                 settings.LowMemoryUnused);

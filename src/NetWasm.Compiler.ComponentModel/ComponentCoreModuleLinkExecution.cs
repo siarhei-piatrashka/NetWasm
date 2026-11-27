@@ -87,7 +87,7 @@ public sealed class ComponentCoreModuleLinkExecution(
             _optimizer.Optimize(
                 workspace.SanitizedModulePath,
                 request.OutputPath,
-                request.Target,
+                request.Target with { Simd = request.Target.Simd && (request.OptimizationOverrides?.Simd ?? true) },
                 settings.BackendPreset,
                 settings.Converge,
                 settings.LowMemoryUnused);

@@ -26,18 +26,18 @@ internal interface IReplayMethodEmitterFactory
 {
     IReplayMethodEmitter Create(UnitReplay replay, ITypeRepository types, ITypeDefinitionResolver typeDefinitions,
         IFieldRepository fields, IMethodRepository methods, ISymbolFormatter symbols, ITypeClassifier typeClassifier,
-        IRuntimeIntrinsicRegistry intrinsics, WasmTarget target);
+        IRuntimeIntrinsicRegistry intrinsics, WasmTarget target, bool simd = true);
 }
 
 internal sealed class ReplayMethodEmitterFactory(ILogger<WasmModuleEmitterFactory> logger) : IReplayMethodEmitterFactory
 {
     public IReplayMethodEmitter Create(UnitReplay replay, ITypeRepository types, ITypeDefinitionResolver typeDefinitions,
         IFieldRepository fields, IMethodRepository methods, ISymbolFormatter symbols, ITypeClassifier typeClassifier,
-        IRuntimeIntrinsicRegistry intrinsics, WasmTarget target)
+        IRuntimeIntrinsicRegistry intrinsics, WasmTarget target, bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(replay);
         var capabilities = replay.Capabilities(types, typeDefinitions, fields, methods, symbols, typeClassifier, intrinsics,
-            new UnitTargetLayout(WasmTargetLayout.For(target)), logger, structuring: null);
+            new UnitTargetLayout(WasmTargetLayout.For(target) with { Simd = simd }), logger, structuring: null);
         return new ReplayMethodEmitter(replay, ManagedBodyWorkerCompositionRoot.Create(capabilities, replay.Fork));
     }
 }

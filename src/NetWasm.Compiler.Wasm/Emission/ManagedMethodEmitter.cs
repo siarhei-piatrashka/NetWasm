@@ -150,7 +150,8 @@ internal sealed class ManagedMethodEmitter(
             callerIdentity,
             managedAggregateValues,
             arrayPlan,
-            lengthRuns);
+            lengthRuns,
+            layouts.Target.Simd);
         var context = emissionLayout.Context with
         {
             StackTraceMethodId = stackTraceMethodId,
@@ -159,7 +160,7 @@ internal sealed class ManagedMethodEmitter(
             AuthoritativeRootSlots = authoritative.Slots,
             ValueFrameReferences = references,
             LoopRotation = loopRotation,
-            InlineSmallBlocks = inlineSmallBlocks,
+            InlineSmallBlocks = inlineSmallBlocks && layouts.Target.Simd,
             InlineArrayData = inlineArrayData,
             ConditionalAllocationRoots = conditionalAllocationRoots,
             ExactArrayStores = arrayStoreChecks.Plan(emissionStructure, eliminateArrayStoreChecks),

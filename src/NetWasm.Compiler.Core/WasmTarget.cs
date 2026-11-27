@@ -52,6 +52,7 @@ public sealed record WasmTargetLayout
         ObjectHeaderSize: sizeof(long));
 
     public WasmTarget Target { get; }
+    public bool Simd { get; init; } = true;
     public int AddressSize { get; }
     public int ObjectReferenceSize { get; }
     public int ObjectReferenceAlignment { get; }

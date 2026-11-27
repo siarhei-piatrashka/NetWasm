@@ -4,6 +4,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 using NetWasm.Compiler.ComponentModel;
+using NetWasm.Compiler.ComponentModel.Optimization;
 using NetWasm.Compiler.Core;
 using NetWasm.TestInfrastructure;
 
@@ -38,6 +39,148 @@ public sealed partial class SimdVectorLoweringCompilationTests
             }
         }
         """;
+
+    [Theory]
+    [InlineData(WasmTarget.Wasm32, FinalWasmOptimization.O0)]
+    [InlineData(WasmTarget.Wasm64, FinalWasmOptimization.O0)]
+    [InlineData(WasmTarget.Wasm32, FinalWasmOptimization.O3)]
+    [InlineData(WasmTarget.Wasm64, FinalWasmOptimization.O3)]
+    [InlineData(WasmTarget.Wasm32, FinalWasmOptimization.O0, "math")]
+    [InlineData(WasmTarget.Wasm64, FinalWasmOptimization.O0, "math")]
+    [InlineData(WasmTarget.Wasm32, FinalWasmOptimization.O3, "math")]
+    [InlineData(WasmTarget.Wasm64, FinalWasmOptimization.O3, "math")]
+    [InlineData(WasmTarget.Wasm32, FinalWasmOptimization.O0, "memory")]
+    [InlineData(WasmTarget.Wasm64, FinalWasmOptimization.O0, "memory")]
+    [InlineData(WasmTarget.Wasm32, FinalWasmOptimization.O3, "memory")]
+    [InlineData(WasmTarget.Wasm64, FinalWasmOptimization.O3, "memory")]
+    public void ScalarVectorsMatchSimdWithoutSimdInstructions(
+        WasmTarget target, FinalWasmOptimization preset, string source = "arithmetic")
+    {
+        using var assets = TestAssets.Create();
+        var assembly = assets.CompileOptimizedSource("ScalarVectorLowering",
+            source switch { "math" => MathSource, "memory" => ScalarMemorySource, _ => Source });
+        var options = new CompilerOptions(assembly, [assets.CoreLib], "EntryPoint", "Run", [],
+            Target: target, Optimization: preset);
+        var simd = NetWasmCompiler.Compile(options);
+        var scalar = NetWasmCompiler.Compile(options with { OptimizationOverrides = new(Simd: false) });
+        var module = Path.Combine(assets.Directory, "scalar.wasm");
+        File.WriteAllBytes(module, scalar.ApplicationModule);
+        var simdModule = Path.Combine(assets.Directory, "simd.wasm");
+        File.WriteAllBytes(simdModule, simd.ApplicationModule);
+        using var services = new ServiceCollection().AddNetWasmCompiler().BuildServiceProvider();
+        var optimizer = services.GetRequiredService<IComponentCoreModuleOptimizer>();
+        var componentTarget = target == WasmTarget.Wasm64
+            ? ComponentTarget.Wasm64Wasi02 : ComponentTarget.Wasm32Wasi02;
+        var finalScalar = Path.Combine(assets.Directory, "scalar-final.wasm");
+        var finalSimd = Path.Combine(assets.Directory, "simd-final.wasm");
+        optimizer.Optimize(module, finalScalar, componentTarget with { Simd = false }, preset);
+        optimizer.Optimize(simdModule, finalSimd, componentTarget, preset);
+        var tools = services.GetRequiredService<IWasmTools>();
+        var printed = tools.Run("print", finalScalar);
+        Assert.True(printed.ExitCode == 0, printed.StandardError);
+        var vectorInstruction = Regex.Match(printed.StandardOutput, @"\b(v128|[if](8x16|16x8|32x4|64x2))\b");
+        Assert.False(vectorInstruction.Success, vectorInstruction.Success
+            ? printed.StandardOutput.Substring(Math.Max(0, vectorInstruction.Index - 200),
+                Math.Min(400, printed.StandardOutput.Length - Math.Max(0, vectorInstruction.Index - 200)))
+            : null);
+        var validated = tools.Run("validate", "--features=-simd,-relaxed-simd", finalScalar);
+        Assert.True(validated.ExitCode == 0, validated.StandardError);
+        Assert.NotEqual(0, tools.Run("validate", "--features=-simd,-relaxed-simd", finalSimd).ExitCode);
+        var features = "mvp,mutable-global,saturating-float-to-int,sign-extension,reference-types," +
+            "multi-value,bulk-memory,exceptions,multi-memory" + (target == WasmTarget.Wasm64 ? ",memory64" : "");
+        var linkedValidation = tools.Run("validate", finalScalar, "--features", features);
+        Assert.True(linkedValidation.ExitCode == 0, linkedValidation.StandardError);
+        Assert.NotEqual(0, tools.Run("validate", finalSimd, "--features", features).ExitCode);
+        var simdBytes = File.ReadAllBytes(finalSimd);
+        var scalarBytes = File.ReadAllBytes(finalScalar);
+        foreach (var input in new[] { 0, 1, 3, -7 })
+        {
+            Assert.Equal(
+                ExecuteWithStandardWasiNode(simdBytes, assets.Directory, input, target, simd.StaticDataEnd),
+                ExecuteWithStandardWasiNode(scalarBytes, assets.Directory, input, target, scalar.StaticDataEnd));
+        }
+    }
+
+    private const string ScalarMemorySource = """
+        using System;
+        using System.Numerics;
+        using System.Runtime.Intrinsics;
+
+        public static class EntryPoint
+        {
+            public static int Run(int input)
+            {
+                var small = new Vector2(input, 2f) + Vector2.One;
+                var large = new Vector3(input, 3f, 4f) * 2f;
+                var bridged = (small.AsVector128() + Vector128.Create(2f)).AsVector4();
+                Span<int> storage = stackalloc int[32];
+                storage.Clear();
+                Vector128.Create(input, 3, 5, 7).CopyTo(storage);
+                storage.Slice(4).Fill(input);
+                var sum = 0;
+                foreach (var value in storage) sum += value;
+                return sum + (int)(bridged.X + bridged.Y + bridged.Z + bridged.W +
+                    large.X + large.Y + large.Z);
+            }
+        }
+        """;
+
+    [Fact]
+    public void ScalarPackedSimdThrowsPlatformNotSupported()
+    {
+        using var assets = TestAssets.Create();
+        var assembly = assets.CompileOptimizedSource("UnsupportedPackedSimd", """
+            using System;
+            using System.Runtime.Intrinsics;
+            using System.Runtime.Intrinsics.Wasm;
+            public static class EntryPoint
+            {
+                public static int Run(int input)
+                {
+                    if (input == 0 && !PackedSimd.IsSupported) return 42;
+                    try { return PackedSimd.Splat(input).GetElement(0); }
+                    catch (PlatformNotSupportedException) { return 73; }
+                }
+            }
+            """);
+        var result = NetWasmCompiler.Compile(new CompilerOptions(assembly, [assets.CoreLib], "EntryPoint", "Run", [],
+            Optimization: FinalWasmOptimization.O0, OptimizationOverrides: new(Simd: false)));
+        Assert.Equal(42, ExecuteWithStandardWasiNode(result.ApplicationModule, assets.Directory, 0,
+            WasmTarget.Wasm32, result.StaticDataEnd));
+        Assert.Equal(73, ExecuteWithStandardWasiNode(result.ApplicationModule, assets.Directory, 1,
+            WasmTarget.Wasm32, result.StaticDataEnd));
+    }
+
+    [Fact]
+    public void ScalarModeDisablesHardwareSupportAndInvalidatesCompiledUnits()
+    {
+        using var assets = TestAssets.Create();
+        var assembly = assets.CompileOptimizedSource("SimdSupport", """
+            using System.Numerics;
+            using System.Runtime.Intrinsics;
+            using System.Runtime.Intrinsics.Wasm;
+            public static class EntryPoint
+            {
+                public static int Run(int input) =>
+                    (Vector128.IsHardwareAccelerated ? 1 : 0) +
+                    (Vector.IsHardwareAccelerated ? 1 : 0) +
+                    (PackedSimd.IsSupported ? 1 : 0);
+            }
+            """);
+        var options = new CompilerOptions(assembly, [assets.CoreLib], "EntryPoint", "Run", [],
+            Optimization: FinalWasmOptimization.O0)
+        {
+            CompiledUnits = true,
+            VerifyCompiledUnits = true,
+            IntermediateOutputPath = Path.Combine(assets.Directory, "units"),
+        };
+        foreach (var simd in new[] { true, false, false, true })
+        {
+            var result = NetWasmCompiler.Compile(options with { OptimizationOverrides = new(Simd: simd) });
+            Assert.Equal(simd ? 3 : 0, ExecuteWithStandardWasiNode(result.ApplicationModule,
+                assets.Directory, 0, WasmTarget.Wasm32, result.StaticDataEnd));
+        }
+    }
 
     [Theory]
     [InlineData(WasmTarget.Wasm32, FinalWasmOptimization.None)]

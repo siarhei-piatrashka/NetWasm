@@ -9,6 +9,16 @@ public sealed class PackageNativeArchiveSelectorTests
 {
     private static readonly Version Emscripten = new(6, 0, 7);
 
+    [Fact]
+    public void ScalarBuildNeverSelectsASimdArchive()
+    {
+        var files = Files("P", "libZ", "3.1.56/st,simd", "3.1.34/st", "3.1.12");
+        var archive = Assert.Single(PackageNativeArchiveSelector.Select(files, Emscripten, simd: false));
+        Assert.Equal("st", archive.Variant);
+        Assert.Equal(new Version(3, 1, 34), archive.EmscriptenVersion);
+        Assert.Empty(PackageNativeArchiveSelector.Select(Files("P", "libZ", "3.1.56/st,simd"), Emscripten, simd: false));
+    }
+
     // SkiaSharp 3.119's layout: per Emscripten version, per variant, newest first no newer than NetWasm's Emscripten,
     // single-threaded, SIMD preferred.
     [Fact]

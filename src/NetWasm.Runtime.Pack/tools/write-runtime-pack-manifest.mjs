@@ -83,6 +83,16 @@ for (const [target, targetPolicy] of Object.entries(policy.targets)) {
     collectorArchive: await describeAsset(`${target}/${collectorDirectory}/speed/libgc.a`),
     platformArchives: await platformArchives(`${target}/${collectorDirectory}/speed`),
   };
+  const scalarAssets = async directory => {
+    const root = `${target}/${collectorDirectory}/${directory}`;
+    const layout = JSON.parse(await readFile(join(runtimeRoot, root, "layout.json"), "utf8"));
+    return {
+      runtimeFootprintBytes: layout.runtimeFootprintBytes,
+      runtimeArchive: await describeAsset(`${root}/libnetwasm-runtime.a`),
+      collectorArchive: await describeAsset(`${root}/libgc.a`),
+      platformArchives: await platformArchives(root),
+    };
+  };
   targets.push({
     target,
     garbageCollector,
@@ -97,6 +107,8 @@ for (const [target, targetPolicy] of Object.entries(policy.targets)) {
     collectorArchive,
     platformArchives: await platformArchives(`${target}/${collectorDirectory}`),
     speed,
+    scalar: await scalarAssets("scalar"),
+    scalarSpeed: await scalarAssets("scalar/speed"),
     allowedUndefinedSymbols,
     emscriptenArchives,
     nativeValidation: {

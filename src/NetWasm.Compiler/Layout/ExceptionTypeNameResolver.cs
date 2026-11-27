@@ -24,6 +24,7 @@ internal sealed class ExceptionTypeNameResolver : IExceptionTypeNameResolver
         ManagedExceptionKind.JSException => "System.JSException",
         ManagedExceptionKind.InvalidOperation => "System.InvalidOperationException",
         ManagedExceptionKind.NotSupported => "System.NotSupportedException",
+        ManagedExceptionKind.PlatformNotSupported => "System.PlatformNotSupportedException",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 }

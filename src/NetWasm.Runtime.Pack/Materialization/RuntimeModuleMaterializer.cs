@@ -46,7 +46,7 @@ internal sealed class RuntimeModuleMaterializer(
             throw new InvalidOperationException("The NetWasm runtime layout target does not match the requested target.");
         }
 
-        var target = targets.Select(manifest, request.Target, request.GarbageCollector, request.Optimization);
+        var target = targets.Select(manifest, request.Target, request.GarbageCollector, request.Optimization, request.Simd);
         RuntimeGarbageCollectors.RequireProgramFor(target.GarbageCollector, sourceLayout.RuntimeFeatures);
         var systemLibraryPaths = target.SystemLibraries.Assets
             .Select(asset => ResolveAsset(request.AssetRoot, asset.Path))
@@ -144,7 +144,8 @@ internal sealed class RuntimeModuleMaterializer(
         var annotated = inlineIntents.Write(
             File.ReadAllBytes(request.OutputPath), manifest.InlineIntents);
         artifactWriter.Write(request.OutputPath, annotated);
-        ImmutableArray<string> validate = ["validate", Path.GetFullPath(request.OutputPath), "--features", "all"];
+        ImmutableArray<string> validate = ["validate", Path.GetFullPath(request.OutputPath), "--features",
+            request.Simd ? "all" : "all,-simd,-relaxed-simd"];
         commands.Invoke(request.NativeWasmToolsPath is { } native
             ? new(native, validate, Path.Combine(request.LogDirectory, "runtime-validate.log"))
             : new(

@@ -18,6 +18,7 @@ public sealed class NetWasmCompileTaskTests
     {
         var task = CreateTask();
         task.NoLogo = true;
+        task.Simd = false;
         task.CompileAsLibrary = true;
         task.Target = "wasm64";
         task.Optimization = "O3";
@@ -72,7 +73,7 @@ public sealed class NetWasmCompileTaskTests
 
         Assert.Equal(
             [
-                "-nologo", "App.dll", "-target:library", "-platform:wasm64", "-optimize:O3", "-out:app.wasm",
+                "-nologo", "App.dll", "-simd-", "-target:library", "-platform:wasm64", "-optimize:O3", "-out:app.wasm",
                 "-r:CoreLib.dll", "-r:\"lib dir/Other.dll\"", "-r:\"lib/NetWasm,Version=v0.1/Lib.dll\"",
                 "-metadatareference:contract-view.dll", "-originalcontract:original-contract.dll",
                 "-referenceorigin:\"lib dir/Other.dll\";package=Example.Library;version=13.0.3;asset=lib/netstandard2.0/Other.dll",
@@ -111,6 +112,7 @@ public sealed class NetWasmCompileTaskTests
     {
         var task = CreateTask();
         task.NoLogo = true;
+        task.Simd = false;
         task.References = [new TaskItem("CoreLib.dll")];
         task.MetadataReferences = [new TaskItem("contract-view.dll")];
         task.MetadataReferences[0].SetMetadata("NetWasmOriginalReference", "original-contract.dll");

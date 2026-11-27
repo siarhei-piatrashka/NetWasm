@@ -74,7 +74,7 @@ internal sealed record CompileCliOptions(
         "typesymbols", "methodsymbols", "typenames", "gc", "callbackobject", "wit", "world", "importmodule",
         "nativelibrary", "nativearchive", "linkednativeonly", "missingapierror", "featureswitch", "runtimeproperty",
         "diagnostictrace", "diagnosticlog", "diagnosticloglevel", "jsexportboundary", "structureddiagnostics",
-        "compiledunits", "verifycompiledunits",
+        "compiledunits", "verifycompiledunits", "simd",
         "projectdirectory", "intermediatedirectory", "wasmtools", "wasmtoolsnode", "wasmtoolscommand",
         "wasmtoolsmodule", "managedloopinvariantfieldhoisting", "managedstaticdataviewelimination",
         "managedaddresstakenvaluepromotion", "managedmethodinlining", "managedbranchprefixduplication",
@@ -92,6 +92,7 @@ internal sealed record CompileCliOptions(
     }.ToFrozenSet(StringComparer.Ordinal);
 
     public FinalWasmOptimization Optimization { get; init; } = FinalWasmOptimization.Oz;
+    public bool Simd { get; init; } = true;
     // Reference facades the compiler reads for metadata and never executes (-metadatareference, a list like -r).
     public ImmutableArray<string> MetadataReferences { get; init; } = [];
     // The original contract images metadata references were generated from (-originalcontract).
@@ -233,6 +234,7 @@ internal sealed record CompileCliOptions(
             NativeLibraries = options.Many("nativelibrary"),
             LinkedNativeOnly = options.Toggle("linkednativeonly"),
             MissingApiError = options.Toggle("missingapierror"),
+            Simd = options.Toggle("simd", absent: true),
             NativeArchives = ParseNativeArchives(options.Many("nativearchive")),
             FeatureSwitches = ParseFeatureSwitches(options.Many("featureswitch")),
             RuntimeProperties = ParseRuntimeProperties(options.Many("runtimeproperty")),

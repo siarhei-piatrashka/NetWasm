@@ -319,7 +319,8 @@ public sealed class CompilerHostApplicationTests
             IEnumerable<string>? originalContractReferencePaths = null,
             NetWasm.Compiler.Core.NativeInterop.INativeImportBinder? nativeBinding = null,
             NetWasm.Compiler.Core.NativeInterop.INativeVariadicCallPlanner? nativeVariadics = null,
-            NetWasm.Compiler.Core.GeneratedJavaScriptBinding? javaScriptBinding = null)
+            NetWasm.Compiler.Core.GeneratedJavaScriptBinding? javaScriptBinding = null,
+            bool simd = true)
         {
             Calls++;
             ReceivedAliases = aliases;

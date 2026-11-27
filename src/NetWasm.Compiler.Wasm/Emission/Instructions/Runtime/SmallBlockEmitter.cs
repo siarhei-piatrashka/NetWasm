@@ -31,7 +31,7 @@ internal static class SmallBlockEmitter
         int source,
         int byteCount)
     {
-        if (!inline)
+        if (!inline || !target.Simd)
         {
             BulkCopy(code, destination, source, byteCount);
             return;
@@ -72,7 +72,7 @@ internal static class SmallBlockEmitter
         int value,
         int byteCount)
     {
-        if (!inline)
+        if (!inline || !target.Simd)
         {
             BulkFill(code, destination, value, byteCount);
             return;
@@ -103,7 +103,7 @@ internal static class SmallBlockEmitter
     // Zeroes a block whose size the compiler knows, as initobj and default(T)
     // do: up to 64 bytes, a store of 16, 8, 4, 2 or 1 bytes for each part,
     // which a small struct needs only a few of.
-    public static bool TryEmitKnownSizeZero(IWasmInstructionWriter code, int destination, int size)
+    public static bool TryEmitKnownSizeZero(IWasmInstructionWriter code, int destination, int size, bool simd = true)
     {
         if (size > KnownSizeZeroLimit)
         {
@@ -119,6 +119,7 @@ internal static class SmallBlockEmitter
                 >= 2 => 2,
                 _ => 1,
             };
+            if (!simd) width = Math.Min(width, 8);
             Get(code, destination);
             code.Write(width switch
             {

@@ -9,25 +9,27 @@
 # WASM builds leave Brotli out; NetWasm includes it because Linux .NET has it. Final linking pulls only the members a
 # program reaches, so a program that uses one codec family does not link the other.
 #
-# Usage: eng/build-compression-native.sh --target wasm32|wasm64 --output <archive>
+# Usage: eng/build-compression-native.sh --target wasm32|wasm64 --output <archive> [--simd true|false]
 # Needs the pinned Emscripten SDK (NETWASM_EMSDK_ROOT, as eng/build-netwasm-runtime.sh does), cmake and ninja.
-# The archive holds ordinary objects built for speed, at -O3 with Wasm SIMD (-msimd128), which every NetWasm program
-# already requires: one archive serves every optimization level, and the final link's wasm-opt applies the program's
-# own.
+# The archive holds ordinary objects built for speed at -O3, with SIMD enabled by default. Each SIMD variant serves
+# every optimization level, and the final link's wasm-opt applies the program's own.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 target=""
 output=""
+simd=true
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --target) target="$2"; shift 2 ;;
         --output) output="$2"; shift 2 ;;
+        --simd) simd="$2"; shift 2 ;;
         *) echo "unknown argument '$1'" >&2; exit 2 ;;
     esac
 done
 [[ "$target" = wasm32 || "$target" = wasm64 ]] || { echo "--target must be 'wasm32' or 'wasm64'" >&2; exit 2; }
 [[ -n "$output" ]] || { echo "--output is required" >&2; exit 2; }
+[[ "$simd" = true || "$simd" = false ]] || { echo "--simd must be true or false" >&2; exit 2; }
 
 emsdk="${NETWASM_EMSDK_ROOT:-${EMSDK:-}}"
 [[ -n "$emsdk" && -x "$emsdk/upstream/emscripten/emcc" ]] || {
@@ -51,7 +53,9 @@ if [[ "$target" = wasm64 ]]; then
     target_flags=(-sMEMORY64=1)
 fi
 # No DWARF, and no build paths in what remains (NetWasm does not publish native debug information).
-common_flags=(-O3 -msimd128 -DNDEBUG -g0 "-ffile-prefix-map=$repo_root=." "-ffile-prefix-map=$work=." "${target_flags[@]}")
+simd_flag=-msimd128
+if [[ "$simd" = false ]]; then simd_flag=-mno-simd128; fi
+common_flags=(-O3 "$simd_flag" -DNDEBUG -g0 "-ffile-prefix-map=$repo_root=." "-ffile-prefix-map=$work=." "${target_flags[@]}")
 
 # Upstream's zlib-ng.cmake: zlib-compatible API with prefixed symbols, static only, no tests, and no aligned_alloc on
 # WASI. zlib-ng has no WebAssembly-specific code, so its generic C paths are used, which -msimd128 lets clang

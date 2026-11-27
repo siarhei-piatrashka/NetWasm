@@ -10,6 +10,7 @@ internal sealed class RuntimeIntrinsicRegistryFactory : IRuntimeIntrinsicRegistr
 {
     public IRuntimeIntrinsicRegistry Create(
         ISymbolFormatter symbols,
-        IEnumerable<MethodDefinitionModel> methods) =>
-        new RuntimeIntrinsicRegistry(symbols, methods);
+        IEnumerable<MethodDefinitionModel> methods,
+        bool simd = true) =>
+        new RuntimeIntrinsicRegistry(symbols, methods, simd);
 }

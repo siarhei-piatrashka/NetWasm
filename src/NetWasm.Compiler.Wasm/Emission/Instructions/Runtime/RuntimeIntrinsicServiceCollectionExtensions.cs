@@ -467,6 +467,8 @@ internal static class RuntimeIntrinsicServiceCollectionExtensions
             RuntimeIntrinsic.SimdConvert, RuntimeIntrinsic.SimdWidenLower, RuntimeIntrinsic.SimdWidenUpper,
             RuntimeIntrinsic.SimdNarrow, RuntimeIntrinsic.SimdReinterpret);
         AddRegistration<PackedSimdIntrinsicEmitter>(services, RuntimeIntrinsic.PackedSimdIsSupported);
+        AddRegistration<PackedSimdIntrinsicEmitter>(services, RuntimeIntrinsic.SimdIsHardwareAccelerated);
+        AddRegistration<PackedSimdIntrinsicEmitter>(services, RuntimeIntrinsic.PackedSimdUnsupported);
         AddRegistration<PackedSimdIntrinsicEmitter>(services, RuntimeIntrinsic.PackedSimdInstruction);
         AddRegistration<NumericsVectorBridgeIntrinsicEmitter>(services, RuntimeIntrinsic.NumericsToVector128);
         AddRegistration<NumericsVectorBridgeIntrinsicEmitter>(services, RuntimeIntrinsic.NumericsFromVector128);

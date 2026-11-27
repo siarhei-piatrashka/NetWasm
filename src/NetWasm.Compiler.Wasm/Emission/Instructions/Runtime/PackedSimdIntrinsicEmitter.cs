@@ -22,10 +22,16 @@ internal sealed class PackedSimdIntrinsicEmitter(
 
     public void Emit(RuntimeIntrinsicEmissionRequest request, IWasmInstructionWriter code)
     {
-        if (request.Intrinsic == RuntimeIntrinsic.PackedSimdIsSupported)
+        if (request.Intrinsic is RuntimeIntrinsic.PackedSimdIsSupported or RuntimeIntrinsic.SimdIsHardwareAccelerated)
         {
-            code.Write(WasmInstruction.WithOperand(WasmOpcodes.I32Constant, WasmInstructionOperand.Signed(1)));
+            code.Write(WasmInstruction.WithOperand(WasmOpcodes.I32Constant, WasmInstructionOperand.Signed(request.Target.Simd ? 1 : 0)));
             Set(code, request.Local(0, CliValueKind.I4));
+            return;
+        }
+
+        if (request.Intrinsic == RuntimeIntrinsic.PackedSimdUnsupported)
+        {
+            exceptions.Emit(code, ManagedExceptionKind.PlatformNotSupported, request.Instruction.Context.ManagedThrowFunction);
             return;
         }
 

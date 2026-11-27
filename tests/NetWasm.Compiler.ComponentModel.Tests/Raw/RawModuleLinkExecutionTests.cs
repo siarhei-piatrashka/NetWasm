@@ -16,6 +16,23 @@ public sealed class RawModuleLinkExecutionTests
         Path.Combine("temporary", "runtime-sanitized.wasm"),
         Path.Combine("temporary", "merged.wasm"));
 
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public void OptimizerHonorsBothTargetAndOverrideSimdSettings(bool targetSimd, bool overrideSimd)
+    {
+        var stages = new RecordingStages();
+        var request = new RawModuleLinkRequest("application", "runtime", "output",
+            ComponentTarget.Wasm32Wasi02 with { Simd = targetSimd })
+        { OptimizationOverrides = new(Simd: overrideSimd) };
+
+        CreateExecution(stages).Run(request, CreateWorkspace(stages));
+
+        Assert.Equal(targetSimd && overrideSimd, stages.Optimization!.Value.Item3.Simd);
+    }
+
     [Fact]
     public void ResolvesOnceAndForwardsEffectiveSettingsWithoutReinterpretingPreset()
     {

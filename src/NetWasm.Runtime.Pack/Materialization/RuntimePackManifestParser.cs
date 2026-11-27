@@ -132,6 +132,8 @@ internal sealed class RuntimePackManifestParser : IRuntimePackManifestParser
         ValidatePlatformArchives(target.PlatformArchives, $"{target.Target}/{target.GarbageCollector.ToLowerInvariant()}/");
         ValidateEmscriptenArchives(target);
         ValidateSpeedAssets(target);
+        ValidateScalarAssets(target.Scalar, target, "scalar/");
+        ValidateScalarAssets(target.ScalarSpeed, target, "scalar/speed/");
         if (target.SystemLibraries is null ||
             target.SystemLibraries.Names.IsDefaultOrEmpty ||
             target.SystemLibraries.Names.Any(name => string.IsNullOrWhiteSpace(name) || Path.GetFileName(name) != name) ||
@@ -194,6 +196,20 @@ internal sealed class RuntimePackManifestParser : IRuntimePackManifestParser
             throw new InvalidOperationException("The NetWasm runtime speed asset path is invalid.");
         }
         ValidatePlatformArchives(speed.PlatformArchives, prefix);
+    }
+
+    private static void ValidateScalarAssets(RuntimePackSpeedAssets? assets, RuntimePackTarget target, string directory)
+    {
+        if (assets is null) return;
+        if (assets.RuntimeFootprintBytes < target.NativeStackSizeBytes)
+            throw new InvalidOperationException("The NetWasm scalar runtime footprint is invalid.");
+        ValidateAsset(assets.RuntimeArchive);
+        ValidateAsset(assets.CollectorArchive);
+        var prefix = $"{target.Target}/{target.GarbageCollector.ToLowerInvariant()}/{directory}";
+        if (assets.RuntimeArchive.Path != prefix + "libnetwasm-runtime.a" ||
+            assets.CollectorArchive.Path != prefix + "libgc.a")
+            throw new InvalidOperationException("The NetWasm scalar runtime asset path is invalid.");
+        ValidatePlatformArchives(assets.PlatformArchives, prefix);
     }
 
     private static void ValidateEmscriptenArchives(RuntimePackTarget target)

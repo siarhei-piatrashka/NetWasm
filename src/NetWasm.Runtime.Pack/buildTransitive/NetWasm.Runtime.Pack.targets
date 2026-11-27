@@ -39,6 +39,7 @@
     <PackageNativeArchiveSelectionTask ProjectAssetsFile="$(ProjectAssetsFile)"
                                        RuntimePackManifestPath="$(NetWasmRuntimePackManifestPath)"
                                        WasmTarget="$(NetWasmTarget)"
+                                       Simd="$([MSBuild]::ValueOrDefault('$(NetWasmSimd)', 'true'))"
                                        ExistingNativeLibraries="@(NativeLibrary)">
       <Output TaskParameter="NativeLibraries" ItemName="NativeLibrary" />
     </PackageNativeArchiveSelectionTask>
@@ -78,7 +79,7 @@
           DependsOnTargets="NetWasmRuntimePackResolveOutputPaths"
           Condition="'$(NetWasmGuestFramework)' == 'true' AND '$(_NetWasmBuildsModule)' == 'true'">
     <WriteLinesToFile File="$(NetWasmRuntimePackMaterializationIdentityPath)"
-                      Lines="target=$(NetWasmTarget);garbageCollector=$(NetWasmGarbageCollector);optimization=$(_NetWasmCanonicalOptimization);initialHeap=$(NetWasmInitialHeapSizeBytes);maximumMemory=$(NetWasmMaximumMemorySizeBytes);assetRoot=$(NetWasmRuntimePackRoot);wasmLd=$(NetWasmWasmLdPath);wasmOpt=$(NetWasmNativeBinaryenWasmOptPath);node=$(NetWasmNodePath);wasmToolsCommand=$(NetWasmWasmToolsCommandPath);wasmToolsModule=$(NetWasmWasmToolsModulePath);sdk=$(NetWasmSdkVersion);compiler=$(NetWasmCompilerVersion);runtime=$(NetWasmRuntimeVersion);runtimePack=$(NetWasmRuntimePackPackageVersion);hostTools=$(NetWasmHostToolsPackageId)@$(NetWasmHostToolsPackageVersion);wasmLdVersion=$(NetWasmWasmLdVersion);wasmOptVersion=$(NetWasmNativeBinaryenWasmOptVersion);wasmToolsVersion=$(NetWasmWasmToolsVersion);nodeVersion=$(NetWasmNodeVersion)"
+                      Lines="target=$(NetWasmTarget);simd=$([MSBuild]::ValueOrDefault('$(NetWasmSimd)', 'true'));garbageCollector=$(NetWasmGarbageCollector);optimization=$(_NetWasmCanonicalOptimization);initialHeap=$(NetWasmInitialHeapSizeBytes);maximumMemory=$(NetWasmMaximumMemorySizeBytes);assetRoot=$(NetWasmRuntimePackRoot);wasmLd=$(NetWasmWasmLdPath);wasmOpt=$(NetWasmNativeBinaryenWasmOptPath);node=$(NetWasmNodePath);wasmToolsCommand=$(NetWasmWasmToolsCommandPath);wasmToolsModule=$(NetWasmWasmToolsModulePath);sdk=$(NetWasmSdkVersion);compiler=$(NetWasmCompilerVersion);runtime=$(NetWasmRuntimeVersion);runtimePack=$(NetWasmRuntimePackPackageVersion);hostTools=$(NetWasmHostToolsPackageId)@$(NetWasmHostToolsPackageVersion);wasmLdVersion=$(NetWasmWasmLdVersion);wasmOptVersion=$(NetWasmNativeBinaryenWasmOptVersion);wasmToolsVersion=$(NetWasmWasmToolsVersion);nodeVersion=$(NetWasmNodeVersion)"
                       Overwrite="true"
                       WriteOnlyWhenDifferent="true" />
   </Target>
@@ -116,6 +117,7 @@
                                 Target="$(NetWasmTarget)"
                                 GarbageCollector="$(NetWasmGarbageCollector)"
                                 Optimization="$(_NetWasmCanonicalOptimization)"
+                                Simd="$([MSBuild]::ValueOrDefault('$(NetWasmSimd)', 'true'))"
                                 InitialHeapSizeBytes="$(NetWasmInitialHeapSizeBytes)"
                                 MaximumMemorySizeBytes="$(NetWasmMaximumMemorySizeBytes)"
                                 NativeLibraries="@(NativeLibrary)"

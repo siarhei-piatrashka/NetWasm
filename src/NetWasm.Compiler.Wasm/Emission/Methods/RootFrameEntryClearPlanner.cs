@@ -34,7 +34,7 @@ internal sealed class RootFrameEntryClearPlanner(IRootClearElisionPlanner clears
         var zeroed = NullStores(context, clears.Plan(method, context with { RootFrameStartsZeroed = true }));
         var replaced = context.AuthoritativeRootSlots.Keys.Count(source => source.Kind == RootSourceKind.Local) +
             (context.ExceptionRootSlots.Count == 0 ? 0 : 1);
-        var zeroing = FrameRangeZeroing.Writes(checked(context.RootSlotCount * layouts.Target.ObjectReferenceSize));
+        var zeroing = FrameRangeZeroing.Writes(checked(context.RootSlotCount * layouts.Target.ObjectReferenceSize), layouts.Target.Simd);
         return unzeroed - zeroed + replaced > zeroing;
     }
 

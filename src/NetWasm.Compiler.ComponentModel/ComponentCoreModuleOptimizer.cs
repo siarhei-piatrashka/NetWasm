@@ -95,7 +95,7 @@ public sealed class ComponentCoreModuleOptimizer(
             "--enable-multivalue",
             "--enable-bulk-memory",
             "--enable-nontrapping-float-to-int",
-            "--enable-simd",
+            target.Simd ? "--enable-simd" : "--disable-simd",
         };
         if (target.Width == "wasm64")
         {

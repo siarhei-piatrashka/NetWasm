@@ -53,12 +53,13 @@ internal sealed class JSImportForwarderFunctionEmitter(
         var dispatcherProgramCounter = checked(numericTemporaryI8 + 1);
         ImmutableArray<CliValueKind> localTypes =
         [
-            .. WasmLocalLayoutPlanner.EvaluationStackLocalTypes(slotCount),
+            .. WasmLocalLayoutPlanner.EvaluationStackLocalTypes(slotCount)
+                .Select(type => type == CliValueKind.V128 && !layouts.Target.Simd ? CliValueKind.I8 : type),
             CliValueKind.ManagedReference,
             CliValueKind.ManagedAddress,
             CliValueKind.ManagedReference,
             CliValueKind.ManagedAddress,
-            .. WasmLocalLayoutPlanner.TemporaryLocals,
+            .. WasmLocalLayoutPlanner.TemporaryLocalTypes(layouts.Target.Simd),
         ];
         var context = new MethodEmissionContext(
             new MethodRootMap(import.Definition.Key, [], []),

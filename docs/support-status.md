@@ -327,7 +327,7 @@ separately.
 
 ## SIMD
 
-Code runs on WebAssembly's 128-bit SIMD. `Vector128.IsHardwareAccelerated` and
+By default, code runs on WebAssembly's 128-bit SIMD. `Vector128.IsHardwareAccelerated` and
 `Vector.IsHardwareAccelerated` are true; `Vector128<T>`, `Vector<T>` and
 `System.Runtime.Intrinsics.Wasm.PackedSimd` lower to Wasm SIMD instructions,
 with vector values in `v128` locals; and CoreLib's vectorized helpers (span
@@ -339,6 +339,12 @@ bitwise reductions (`NetWasmManagedLoopVectorization`).
 x86 and Arm intrinsics report `IsSupported` false, as they do on other hardware,
 so their guarded paths drop out of the program. `Vector64<T>`, `Vector256<T>`
 and `Vector512<T>` are not accelerated.
+
+`<NetWasmSimd>false</NetWasmSimd>` selects software vector implementations and
+scalar native archives, and disables SIMD in final module validation. Vector
+hardware acceleration and `PackedSimd.IsSupported` then report false; portable
+vector operations still work, while unguarded hardware-specific `PackedSimd`
+calls throw `PlatformNotSupportedException`.
 
 ## Deferred debug information (DWARF)
 

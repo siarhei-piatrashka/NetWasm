@@ -4,6 +4,9 @@
   <PropertyGroup Condition="'$(NetWasmGuestFramework)' == ''">
     <NetWasmGuestFramework Condition="'$(TargetFramework)' == 'netwasm0.1' OR $(TargetFramework.ToLowerInvariant().Contains('-netwasm'))">true</NetWasmGuestFramework>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(NetWasmSimd)' == 'false'">
+    <_NetWasmAppNativeVariant>scalar/</_NetWasmAppNativeVariant>
+  </PropertyGroup>
   <!-- NetWasm.App's implementations, for the NetWasm compiler. C# compiles against NetWasm.App.Ref; the
        compile targets give the compiler the ones the program's assemblies reach. -->
   <ItemGroup Condition="'$(NetWasmGuestFramework)' == 'true'">
@@ -13,10 +16,10 @@
   <!-- The zlib codecs' native half (DeflateStream, ZLibStream, GZipStream and ZIP's Deflate entries). Final linking
        keeps it only when a program reaches one of its imports. -->
   <ItemGroup Condition="'$(NetWasmGuestFramework)' == 'true'">
-    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm32/libSystem.IO.Compression.Native.a"
+    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm32/$(_NetWasmAppNativeVariant)libSystem.IO.Compression.Native.a"
                    NetWasmLibraryName="libSystem.IO.Compression.Native"
                    WasmTarget="wasm32" />
-    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm64/libSystem.IO.Compression.Native.a"
+    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm64/$(_NetWasmAppNativeVariant)libSystem.IO.Compression.Native.a"
                    NetWasmLibraryName="libSystem.IO.Compression.Native"
                    WasmTarget="wasm64" />
   </ItemGroup>
@@ -25,10 +28,10 @@
        (ciphers, keys, signatures, key agreement and X.509; hashing stays managed). Final linking keeps it only when a
        program reaches one of its imports. -->
   <ItemGroup Condition="'$(NetWasmGuestFramework)' == 'true'">
-    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm32/libSystem.Security.Cryptography.Native.OpenSsl.a"
+    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm32/$(_NetWasmAppNativeVariant)libSystem.Security.Cryptography.Native.OpenSsl.a"
                    NetWasmLibraryName="libSystem.Security.Cryptography.Native.OpenSsl"
                    WasmTarget="wasm32" />
-    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm64/libSystem.Security.Cryptography.Native.OpenSsl.a"
+    <NativeLibrary Include="$(MSBuildThisFileDirectory)../native/wasm64/$(_NetWasmAppNativeVariant)libSystem.Security.Cryptography.Native.OpenSsl.a"
                    NetWasmLibraryName="libSystem.Security.Cryptography.Native.OpenSsl"
                    WasmTarget="wasm64" />
   </ItemGroup>

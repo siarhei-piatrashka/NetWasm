@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using NetWasm.Compiler.Core;
 using NetWasm.Compiler.Core.Types;
 using NetWasm.Compiler.Wasm.Emission.Instructions.Calls;
 using NetWasm.Compiler.Wasm.Emission.Instructions.Memory;
@@ -31,7 +32,8 @@ internal static class InstructionEmissionServiceCollectionExtensions
             ArgumentSignatureTypeResolver>();
         services.AddSingleton<BulkValueCopyEmitter>();
         services.AddSingleton<IValueCopyEmitter>(provider =>
-            new SmallValueCopyEmitter(provider.GetRequiredService<BulkValueCopyEmitter>()));
+            new SmallValueCopyEmitter(provider.GetRequiredService<BulkValueCopyEmitter>(),
+                provider.GetRequiredService<ITargetLayout>()));
         services.AddSingleton<IImplicitExceptionEmitter, ImplicitExceptionEmitter>();
         services.AddSingleton<IExceptionPayloadBlockEmitter,
             ExceptionPayloadBlockEmitter>();

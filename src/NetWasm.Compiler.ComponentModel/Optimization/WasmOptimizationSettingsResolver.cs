@@ -124,6 +124,8 @@ public sealed class WasmOptimizationSettingsResolver : IWasmOptimizationSettings
         FinalWasmOptimization preset,
         WasmOptimizationOverrides? options = null)
     {
+        if (options?.Simd == false)
+            options = options with { LoopVectorization = ManagedLoopVectorization.Disabled };
         if (!Presets.TryGetValue(preset, out var presetSelection) ||
             !FieldHoistingPresets.TryGetValue(preset, out var fieldHoisting) ||
             !StaticDataViewPresets.TryGetValue(preset, out var staticDataViews) ||

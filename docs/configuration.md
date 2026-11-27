@@ -33,6 +33,7 @@ says so; anything not listed behaves as in any other .NET project.
 | Setting | Default | Values and meaning |
 | --- | --- | --- |
 | `NetWasmOptimization` | `O0` in Debug, `Oz` otherwise | `None`, `O0`, `O1`, `O2`, `O3`, `Os` or `Oz`. `O1` to `O3` favor speed, `Os` and `Oz` size. Each level is a set of the switches in the [optimization reference](optimization.md), which a project can also set one by one. |
+| `NetWasmSimd` | `true` | `false` produces wasm without SIMD instructions or `v128` types, using managed software vector implementations and scalar native runtime, compression and cryptography archives. Disables loop vectorization even when explicitly enabled. |
 | `NetWasmOptimizerConverge` | `false` | `true` repeats Binaryen's passes until the module stops shrinking: a slower build for a slightly smaller module. |
 | `NetWasmOptimizerLowMemoryUnused` | `false` | `true` lets Binaryen assume the first KiB of memory is unused, which NetWasm guarantees, and fold constant address offsets into loads and stores. |
 | `NetWasmManagedInliningHints` | `Auto` | How `[MethodImpl(MethodImplOptions.AggressiveInlining)]` is treated: `Auto` follows the level, `Preserve` always honors it, `IgnoreAggressive` never does. |
@@ -40,6 +41,16 @@ says so; anything not listed behaves as in any other .NET project.
 | `NetWasmGarbageCollector` | unset, which is `Compact` | `Compact`, `NetWasm`, `NetWasmGen` or `Bump`. See [choosing a garbage collector](runtime-garbage-collection.md). |
 | `NetWasmCompiledUnits` | `true` at `O0` and `None`, `false` otherwise | `true` keeps each method's compiled code under `obj/` and recompiles only the methods an edit affects. |
 | `NetWasmVerifyCompiledUnits` | `false` | `true` also compiles every reused method and fails the build if it differs. |
+
+To target an engine without SIMD, set `<NetWasmSimd>false</NetWasmSimd>` in a
+`PropertyGroup`, or pass `-p:NetWasmSimd=false`. Vector hardware-acceleration
+properties and `PackedSimd.IsSupported` then return false. Portable vector
+operations keep their software implementations; unguarded `PackedSimd` calls
+throw `PlatformNotSupportedException`, as on other platforms without SIMD.
+Custom native libraries must also be built without SIMD; package-provided
+non-SIMD variants are selected automatically, and validation rejects SIMD
+instructions from any linked input. Older runtime packs without scalar assets
+cannot build this mode and report an error.
 
 ## Diagnostics
 

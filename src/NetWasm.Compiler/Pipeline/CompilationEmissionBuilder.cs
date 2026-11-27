@@ -134,7 +134,7 @@ internal sealed class CompilationEmissionBuilder(
         var staticDataLayout = _staticData.Create(layouts.Snapshot);
         var memberDescriptorLayout = _memberDescriptors.Create(layouts.Snapshot);
         var exceptionObjectLayouts = _exceptionObjects.Create(layouts.Snapshot);
-        var runtimeIntrinsics = _intrinsics.Create(symbols, metadata.Methods);
+        var runtimeIntrinsics = _intrinsics.Create(symbols, metadata.Methods, options.Simd);
         // Methods whose units will be reused are not structured; diagnostics need every
         // method's structure.
         var outlines = units is null || options.DiagnosticTracePath is not null

@@ -15,5 +15,6 @@ public interface IManagedAssemblyLoader
         ImmutableDictionary<(AssemblyIdentity Assembly, string FullName), AssemblyIdentity>? typeForwarders = null,
         INativeImportBinder? nativeBinding = null,
         INativeVariadicCallPlanner? nativeVariadics = null,
-        GeneratedJavaScriptBinding? javaScriptBinding = null);
+        GeneratedJavaScriptBinding? javaScriptBinding = null,
+        bool simd = true);
 }

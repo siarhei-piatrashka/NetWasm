@@ -9,6 +9,30 @@ namespace NetWasm.Runtime.Pack.Tests.Materialization;
 
 public sealed class RuntimePackManifestParserTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ScalarProfilesRoundTripAndRejectSimdArchivePaths(bool speed)
+    {
+        var source = RuntimePackTestData.Manifest();
+        var original = source.Targets[0];
+        var directory = $"{original.Target}/{original.GarbageCollector.ToLowerInvariant()}/scalar" +
+            (speed ? "/speed" : "");
+        var assets = original.Speed! with
+        {
+            RuntimeArchive = RuntimePackTestData.Asset($"{directory}/libnetwasm-runtime.a"),
+            CollectorArchive = RuntimePackTestData.Asset($"{directory}/libgc.a"),
+            PlatformArchives = RuntimePackTestData.PlatformArchives(directory),
+        };
+        var target = speed ? original with { ScalarSpeed = assets } : original with { Scalar = assets };
+        var parsed = Create().Parse(JsonSerializer.Serialize(source with { Targets = source.Targets.SetItem(0, target) }));
+        Assert.Equal(assets, speed ? parsed.Targets[0].ScalarSpeed : parsed.Targets[0].Scalar);
+        var wrong = assets with { RuntimeArchive = original.RuntimeArchive };
+        target = speed ? original with { ScalarSpeed = wrong } : original with { Scalar = wrong };
+        Assert.Equal("The NetWasm scalar runtime asset path is invalid.",
+            ReadInvalid(source with { Targets = source.Targets.SetItem(0, target) }).Message);
+    }
+
     private static IRuntimePackManifestParser Create() =>
         Assert.IsAssignableFrom<IRuntimePackManifestParser>(new RuntimePackManifestParser());
 

@@ -37,7 +37,7 @@ internal sealed class ManagedLayoutCompiler(
         ArgumentNullException.ThrowIfNull(entityBaseTypes);
         ArgumentNullException.ThrowIfNull(identityBaseTypes);
         ArgumentNullException.ThrowIfNull(program);
-        var targetLayout = WasmTargetLayout.For(target);
+        var targetLayout = WasmTargetLayout.For(target) with { Simd = metadata.Simd };
         var typeLayouts = _typeLayoutCompilers.Create(
             metadata,
             typeRepository,

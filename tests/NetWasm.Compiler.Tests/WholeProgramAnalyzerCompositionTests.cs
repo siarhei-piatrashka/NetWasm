@@ -519,10 +519,11 @@ public sealed class WholeProgramAnalyzerCompositionTests
 
         public IRuntimeIntrinsicRegistry Create(
             ISymbolFormatter symbols,
-            IEnumerable<MethodDefinitionModel> methods)
+            IEnumerable<MethodDefinitionModel> methods,
+            bool simd = true)
         {
             Called = true;
-            return new RuntimeIntrinsicRegistry(symbols, methods);
+            return new RuntimeIntrinsicRegistry(symbols, methods, simd);
         }
     }
 

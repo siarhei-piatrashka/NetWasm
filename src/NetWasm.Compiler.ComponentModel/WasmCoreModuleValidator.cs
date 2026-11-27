@@ -31,6 +31,8 @@ public sealed class WasmCoreModuleValidator(
         var features = target.Width == "wasm64"
             ? SupportedFeatures + ",memory64"
             : SupportedFeatures;
+        if (!target.Simd)
+            features = features.Replace(",simd", "", StringComparison.Ordinal);
         _operations.Run(["validate", path, "--features", features],
             "validate the linked core module");
     }

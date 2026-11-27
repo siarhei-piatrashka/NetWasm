@@ -32,11 +32,12 @@ public sealed class ManagedAssemblyLoader(
         ImmutableDictionary<(AssemblyIdentity Assembly, string FullName), AssemblyIdentity>? typeForwarders = null,
         INativeImportBinder? nativeBinding = null,
         INativeVariadicCallPlanner? nativeVariadics = null,
-        GeneratedJavaScriptBinding? javaScriptBinding = null) =>
+        GeneratedJavaScriptBinding? javaScriptBinding = null,
+        bool simd = true) =>
         ManagedAssembly.Parse(
             path,
             _images.Read(path),
-            new AssemblyIdentityAliases(referenceAssemblyAliases, typeForwarders),
+            new AssemblyIdentityAliases(referenceAssemblyAliases, typeForwarders) { Simd = simd },
             _stackKinds,
             _nativeImports,
             _nativeCallbacks,

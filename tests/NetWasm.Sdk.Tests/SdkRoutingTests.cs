@@ -676,6 +676,21 @@ public sealed class SdkRoutingTests
         Assert.Contains("importModules=host_gl,host_ui", project.Items("NetWasmCompilationIdentityLine"));
     }
 
+    [Theory]
+    [InlineData("", "true")]
+    [InlineData("<NetWasmSimd>false</NetWasmSimd>", "false")]
+    public void CompilationIdentityTracksSimd(string property, string expected)
+    {
+        using var project = EvaluationProject.Create($"""
+            <TargetFramework>netwasm0.1</TargetFramework>
+            <OutputType>Exe</OutputType>
+            <DesignTimeBuild>true</DesignTimeBuild>
+            {property}
+            """, includeCompilerTargets: true, probeTargets: "NetWasmWriteCompilationIdentity");
+
+        Assert.Contains($"simd={expected}", project.Items("NetWasmCompilationIdentityLine"));
+    }
+
     private static string RepositoryRoot()
     {
         var root = Directory.GetCurrentDirectory();

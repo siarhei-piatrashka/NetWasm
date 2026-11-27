@@ -71,6 +71,7 @@ public sealed class NetWasmLinkRawModuleTask : Microsoft.Build.Utilities.Task
 
     // Repeats wasm-opt's preset until the module stops shrinking.
     public bool OptimizerConverge { get; set; }
+    public bool Simd { get; set; } = true;
 
     // true or false overrides the preset's choice; empty keeps it.
     public string OptimizerLowMemoryUnused { get; set; } = string.Empty;
@@ -94,7 +95,7 @@ public sealed class NetWasmLinkRawModuleTask : Microsoft.Build.Utilities.Task
             };
             var optimization = ParseOptimization();
             var optimizationOverrides = OptimizerOverridesParser.Apply(
-                _inlineHints.Parse(ManagedInliningHints), OptimizerConverge, OptimizerLowMemoryUnused);
+                _inlineHints.Parse(ManagedInliningHints), OptimizerConverge, OptimizerLowMemoryUnused, Simd);
             var internalExports = _exports.Read(InternalRuntimeExports);
             var internalApplicationExports = _exports.Read(
                 InternalApplicationExports);

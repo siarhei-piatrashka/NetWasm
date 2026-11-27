@@ -49,6 +49,7 @@ public enum ManagedExceptionKind
     JSException,
     InvalidOperation,
     NotSupported,
+    PlatformNotSupported,
 }
 // A type's runtime registration: its object layout's reference offsets, in bytes, and the type
 // IDs a cast to it accepts.

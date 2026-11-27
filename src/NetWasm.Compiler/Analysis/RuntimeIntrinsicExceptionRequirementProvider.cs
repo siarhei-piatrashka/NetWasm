@@ -13,6 +13,8 @@ internal sealed class RuntimeIntrinsicExceptionRequirementProvider(
 {
     private static readonly ReachabilityExceptionRequirement NotSupported =
         new(ManagedExceptionKind.NotSupported, "System.NotSupportedException");
+    private static readonly ReachabilityExceptionRequirement PlatformNotSupported =
+        new(ManagedExceptionKind.PlatformNotSupported, "System.PlatformNotSupportedException");
     private static readonly ReachabilityExceptionRequirement NullReference =
         new(ManagedExceptionKind.NullReference, "System.NullReferenceException");
     private static readonly ReachabilityExceptionRequirement IndexOutOfRange =
@@ -119,6 +121,7 @@ internal sealed class RuntimeIntrinsicExceptionRequirementProvider(
                 PackedSimdInstructions.TryGet(method, out var instruction) &&
                 instruction.Shape is not (PackedSimdShape.Simple or PackedSimdShape.Memory) =>
                 [ArgumentOutOfRange],
+            RuntimeIntrinsic.PackedSimdUnsupported => [PlatformNotSupported],
             _ when RuntimeIntrinsicKinds.IsSimdVector(intrinsic) => [NotSupported],
             _ => [],
         };

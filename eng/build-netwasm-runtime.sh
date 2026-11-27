@@ -10,6 +10,7 @@ output=""
 target="wasm32"
 configuration="release"
 native_profile="size"
+simd=true
 force_component_collection=0
 gc_stress=0
 output_kind="module"
@@ -27,6 +28,7 @@ while [[ $# -gt 0 ]]; do
         --target) target="$2"; shift 2 ;;
         --configuration) configuration="$2"; shift 2 ;;
         --native-profile) native_profile="$2"; shift 2 ;;
+        --simd) simd="$2"; shift 2 ;;
         --force-component-collection) force_component_collection=1; shift ;;
         --gc-stress) gc_stress=1; shift ;;
         --relocatable) output_kind="relocatable"; shift ;;
@@ -76,6 +78,7 @@ done
     exit 2
 }
 native_optimization=-Oz
+[[ "$simd" = true || "$simd" = false ]] || { echo "--simd must be true or false" >&2; exit 2; }
 if [[ "$native_profile" = speed ]]; then
     native_optimization=-O3
 fi
@@ -317,8 +320,9 @@ debug_information=(-g0)
 mkdir -p "$(dirname "$output")"
 runtime_work="$(mktemp -d "${TMPDIR:-/tmp}/netwasm-runtime.XXXXXX")"
 trap 'rm -rf "$runtime_work"' EXIT
-# Wasm SIMD, which every NetWasm program already requires, so clang can vectorize the runtime's C.
-target_args=(-msimd128)
+# Match the managed module's SIMD setting when compiling the runtime's C.
+target_args=()
+if [[ "$simd" = true ]]; then target_args+=(-msimd128); else target_args+=(-mno-simd128); fi
 if [[ "$target" = wasm64 ]]; then
     target_args+=(-sMEMORY64=1 -sWASM_BIGINT=1)
 fi
@@ -462,6 +466,7 @@ else
     initial_memory="$(( (runtime_global_base + 4194304 + 65535) / 65536 * 65536 ))"
     emcc_args=(
       "$metadata_object"
+      "${target_args[@]}"
       "${runtime_sources[@]}"
       "${collector_sources[@]}"
       -I"$repo_root/src/NetWasm.Runtime" -I"$gc_work" -I"$libc_internal_include" -I"$libc_arch_include"
@@ -484,7 +489,11 @@ else
         "${optimization[@]}" "${debug_information[@]}" -o "$output"
     )
     emcc "${emcc_args[@]}"
-    wasm-tools validate "$output" --features all
+    if [[ "$simd" = false ]]; then
+        wasm-tools validate "$output" --features all,-simd,-relaxed-simd
+    else
+        wasm-tools validate "$output" --features all
+    fi
     node "$repo_root/src/NetWasm.Runtime.Pack/tools/validate-runtime-component-metadata.mjs" \
         "$output" "$runtime_work/component-type.bin"
 fi

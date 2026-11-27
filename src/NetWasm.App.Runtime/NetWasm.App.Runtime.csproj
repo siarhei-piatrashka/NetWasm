@@ -68,7 +68,11 @@
   <ItemGroup>
     <_NetWasmAppCompressionInput Include="$(MSBuildProjectDirectory)/../native/**/*" />
     <_NetWasmAppCompressionInput Include="$(MSBuildProjectDirectory)/../../eng/build-compression-native.sh" />
-    <_NetWasmAppNativeTarget Include="wasm32;wasm64" />
+    <_NetWasmAppNativeTarget Include="wasm32;wasm64;wasm32/scalar;wasm64/scalar">
+      <WasmTarget>$([System.String]::Copy('%(Identity)').Split('/')[0])</WasmTarget>
+      <Simd>true</Simd>
+      <Simd Condition="$([System.String]::Copy('%(Identity)').Contains('/scalar'))">false</Simd>
+    </_NetWasmAppNativeTarget>
     <_NetWasmAppCryptoInput Include="$(MSBuildProjectDirectory)/../native/libs/System.Security.Cryptography.Native/**/*" />
     <_NetWasmAppCryptoInput Include="$(MSBuildProjectDirectory)/../native/libs/Common/**/*" />
     <_NetWasmAppCryptoInput Include="$(MSBuildProjectDirectory)/../native/minipal/**/*" />
@@ -89,7 +93,7 @@
           Condition="'$(NETWASM_EMSDK_ROOT)' != ''"
           Inputs="@(_NetWasmAppCompressionInput)"
           Outputs="@(_NetWasmAppNativeTarget->'$(NetWasmAppNativeOutput)%(Identity)/$(NetWasmAppCompressionArchive)')">
-    <Exec Command="bash &quot;$(MSBuildProjectDirectory)/../../eng/build-compression-native.sh&quot; --target %(_NetWasmAppNativeTarget.Identity) --output &quot;$(NetWasmAppNativeOutput)%(_NetWasmAppNativeTarget.Identity)/$(NetWasmAppCompressionArchive)&quot;" />
+    <Exec Command="bash &quot;$(MSBuildProjectDirectory)/../../eng/build-compression-native.sh&quot; --target %(_NetWasmAppNativeTarget.WasmTarget) --simd %(_NetWasmAppNativeTarget.Simd) --output &quot;$(NetWasmAppNativeOutput)%(_NetWasmAppNativeTarget.Identity)/$(NetWasmAppCompressionArchive)&quot;" />
   </Target>
 
   <Target Name="NetWasmAppBuildCryptoNative"
@@ -98,7 +102,7 @@
           Condition="'$(NETWASM_EMSDK_ROOT)' != ''"
           Inputs="@(_NetWasmAppCryptoInput)"
           Outputs="@(_NetWasmAppNativeTarget->'$(NetWasmAppNativeOutput)%(Identity)/$(NetWasmAppCryptoArchive)')">
-    <Exec Command="bash &quot;$(MSBuildProjectDirectory)/../../eng/build-crypto-native.sh&quot; --target %(_NetWasmAppNativeTarget.Identity) --output &quot;$(NetWasmAppNativeOutput)%(_NetWasmAppNativeTarget.Identity)/$(NetWasmAppCryptoArchive)&quot;" />
+    <Exec Command="bash &quot;$(MSBuildProjectDirectory)/../../eng/build-crypto-native.sh&quot; --target %(_NetWasmAppNativeTarget.WasmTarget) --simd %(_NetWasmAppNativeTarget.Simd) --output &quot;$(NetWasmAppNativeOutput)%(_NetWasmAppNativeTarget.Identity)/$(NetWasmAppCryptoArchive)&quot;" />
   </Target>
 
   <Target Name="NetWasmAppRuntimeResolvePackTaskOutput"
@@ -120,10 +124,10 @@
       <NetWasmAppRuntimeManifestFilePath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'NetWasm.Sdk.Pack.manifest.json'))</NetWasmAppRuntimeManifestFilePath>
       <NetWasmAppRuntimeDiagnosticFilePath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'NetWasm.Sdk.Pack.diagnostic.json'))</NetWasmAppRuntimeDiagnosticFilePath>
     </PropertyGroup>
-    <Error Condition="!Exists('$(NetWasmAppNativeOutput)wasm32/$(NetWasmAppCompressionArchive)') Or !Exists('$(NetWasmAppNativeOutput)wasm64/$(NetWasmAppCompressionArchive)')"
+    <Error Condition="!Exists('$(NetWasmAppNativeOutput)%(_NetWasmAppNativeTarget.Identity)/$(NetWasmAppCompressionArchive)')"
            Code="NWRF012"
            Text="NetWasm.App.Runtime packs the compression codecs' native archives; build it with NETWASM_EMSDK_ROOT set to the pinned Emscripten SDK." />
-    <Error Condition="!Exists('$(NetWasmAppNativeOutput)wasm32/$(NetWasmAppCryptoArchive)') Or !Exists('$(NetWasmAppNativeOutput)wasm64/$(NetWasmAppCryptoArchive)')"
+    <Error Condition="!Exists('$(NetWasmAppNativeOutput)%(_NetWasmAppNativeTarget.Identity)/$(NetWasmAppCryptoArchive)')"
            Code="NWRF013"
            Text="NetWasm.App.Runtime packs cryptography's native archives; build it with NETWASM_EMSDK_ROOT set to the pinned Emscripten SDK." />
     <Error Condition="'@(_NetWasmAppImplementation->Count())' != '@(NetWasmAppLibrary->Count())'"

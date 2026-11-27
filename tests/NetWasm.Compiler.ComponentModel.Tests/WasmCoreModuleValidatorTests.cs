@@ -5,6 +5,16 @@ namespace NetWasm.Compiler.ComponentModel.Tests;
 
 public sealed class WasmCoreModuleValidatorTests
 {
+    [Fact]
+    public void ScalarOutputIsValidatedWithoutSimd()
+    {
+        var operations = new RecordingOperations();
+        new WasmCoreModuleValidator(operations).Validate("scalar.wasm",
+            ComponentTarget.Wasm64Wasi02 with { Simd = false });
+        Assert.DoesNotContain("simd", operations.Arguments[^1]);
+        Assert.Contains("memory64", operations.Arguments[^1]);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

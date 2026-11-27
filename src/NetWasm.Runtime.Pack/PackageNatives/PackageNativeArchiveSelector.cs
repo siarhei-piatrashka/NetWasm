@@ -36,7 +36,7 @@ internal static class PackageNativeArchiveSelector
         [11] = new(6, 0, 2),
     };
 
-    public static ImmutableArray<PackageNativeArchive> Select(IEnumerable<PackageFile> files, Version emscriptenVersion)
+    public static ImmutableArray<PackageNativeArchive> Select(IEnumerable<PackageFile> files, Version emscriptenVersion, bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(files);
         ArgumentNullException.ThrowIfNull(emscriptenVersion);
@@ -44,6 +44,7 @@ internal static class PackageNativeArchiveSelector
             .Select(Parse)
             .OfType<PackageNativeArchive>()
             .Where(archive => archive.EmscriptenVersion <= emscriptenVersion && VariantPreference.Contains(archive.Variant))
+            .Where(archive => simd || archive.Variant != "st,simd")
             .GroupBy(archive => (archive.PackageId, archive.LibraryName))
             .Select(group => group
                 .OrderByDescending(archive => archive.EmscriptenVersion)

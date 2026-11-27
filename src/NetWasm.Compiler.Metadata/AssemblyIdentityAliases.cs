@@ -23,6 +23,7 @@ internal readonly record struct AssemblyIdentityAliases
         new(ImmutableDictionary<string, string>.Empty);
 
     public bool HasTypeForwarders => _typeForwarders is { Count: > 0 };
+    public bool Simd { get; init; } = true;
 
     public AssemblyIdentity Canonicalize(AssemblyIdentity identity) =>
         _aliases?.TryGetValue(identity.Name, out var target) == true

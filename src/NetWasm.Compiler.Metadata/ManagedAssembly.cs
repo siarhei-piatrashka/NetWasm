@@ -414,6 +414,7 @@ public sealed class ManagedAssembly : IDisposable
                     typeFields,
                     methodKeys.MoveToImmutable())
                 {
+                    Simd = assemblyIdentityAliases.Simd,
                     LayoutKind = (definition.Attributes & TypeAttributes.LayoutMask) switch
                     {
                         TypeAttributes.SequentialLayout => CliTypeLayoutKind.Sequential,

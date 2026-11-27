@@ -173,7 +173,8 @@ internal sealed class CompilationPipelineExecutor(
                 // program, as PlatformWorldCapabilities.JavaScriptHost decides.
                 options.UseJavaScriptExportBoundary || options.WitPath is null
                     ? GeneratedJavaScriptBinding.HostInterop
-                    : GeneratedJavaScriptBinding.OrdinaryCode))
+                    : GeneratedJavaScriptBinding.OrdinaryCode,
+                options.Simd))
             {
                 var metadata = lease.Snapshot;
                 if (!options.ReferenceOrigins.IsDefaultOrEmpty)

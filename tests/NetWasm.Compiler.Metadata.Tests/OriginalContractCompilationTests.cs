@@ -81,13 +81,14 @@ public sealed class OriginalContractCompilationTests
             ImmutableDictionary<(AssemblyIdentity Assembly, string FullName), AssemblyIdentity>? forwarders = null,
             INativeImportBinder? nativeBinding = null,
         INativeVariadicCallPlanner? nativeVariadics = null,
-        GeneratedJavaScriptBinding? javaScriptBinding = null)
+        GeneratedJavaScriptBinding? javaScriptBinding = null,
+        bool simd = true)
         {
             if (path == FailingPath) throw new InvalidOperationException();
             var image = new ManagedAssemblyLoader(new ManagedAssemblyImageReader(),
                 new ValueTypeDefinitionStackKindResolver(), new NativeImportDeclarationReader(),
                 new NativeCallbackDeclarationReader()).Load(path, aliases, forwarders, nativeBinding, nativeVariadics,
-                    javaScriptBinding);
+                    javaScriptBinding, simd);
             Loaded.Add(image);
             return image;
         }

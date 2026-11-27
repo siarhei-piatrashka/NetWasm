@@ -28,7 +28,8 @@ internal static class MethodEmissionContextFactory
         ManagedMethodIdentity callerIdentity,
         ManagedAggregateSsaPlan? managedAggregateValues = null,
         ArrayMetadataCachingPlan? arrayMetadata = null,
-        ArrayLengthRunPlan? arrayLengthRuns = null)
+        ArrayLengthRunPlan? arrayLengthRuns = null,
+        bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(header);
         ArgumentNullException.ThrowIfNull(rootMap);
@@ -71,7 +72,8 @@ internal static class MethodEmissionContextFactory
         var localTypes = WasmLocalLayoutPlanner.CreateMethodLocals(
             header,
             exceptionGroups.Count,
-            valueLayout.SpilledScalarLocals);
+            valueLayout.SpilledScalarLocals,
+            simd);
         var copyDestination = checked(parameterCount + localTypes.Length);
         localTypes = localTypes.Add(CliValueKind.ManagedAddress);
         var copySource = checked(parameterCount + localTypes.Length);

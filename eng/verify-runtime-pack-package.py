@@ -76,6 +76,15 @@ def inspect(package: Path, pins_root: Path, version: str) -> None:
             if speed_layout.get("schemaVersion") != 1 or speed_layout.get("target") != name or \
                     speed_layout.get("runtimeFootprintBytes") != speed["runtimeFootprintBytes"]:
                 raise ValueError("Runtime-pack speed layout does not match its manifest.")
+            for profile, directory in (("scalar", "scalar"), ("scalarSpeed", "scalar/speed")):
+                scalar = target.get(profile)
+                if not isinstance(scalar, dict) or not isinstance(scalar.get("runtimeFootprintBytes"), int) or \
+                        scalar["runtimeFootprintBytes"] < target["nativeStackSizeBytes"]:
+                    raise ValueError(f"Runtime-pack {profile} profile is invalid.")
+                scalar_layout = json.loads(archive.read(f"runtime/{name}/{collector}/{directory}/layout.json"))
+                if scalar_layout.get("schemaVersion") != 1 or scalar_layout.get("target") != name or \
+                        scalar_layout.get("runtimeFootprintBytes") != scalar["runtimeFootprintBytes"]:
+                    raise ValueError(f"Runtime-pack {profile} layout does not match its manifest.")
             required = policy["targets"][name]["systemLibraries"]
             closure = target["systemLibraries"]
             if closure.get("names") != required or len(closure.get("assets", [])) != len(required):
@@ -103,6 +112,12 @@ def inspect(package: Path, pins_root: Path, version: str) -> None:
                               f"{name}/libnetwasm-emscripten-stand-ins.a", *(
                 f"{name}/system-libraries/{library}" for library in required), *(
                 f"{name}/system-libraries/{library}" for library in exception_required)]
+            for profile, directory in (("scalar", "scalar"), ("scalarSpeed", "scalar/speed")):
+                scalar = target[profile]
+                assets.extend([scalar["runtimeArchive"], scalar["collectorArchive"],
+                               scalar["platformArchives"]["wasi"], scalar["platformArchives"]["noWasi"]])
+                expected_paths.extend(f"{name}/{collector}/{directory}/{file}" for file in (
+                    "libnetwasm-runtime.a", "libgc.a", "libnetwasm-runtime-wasi.a", "libnetwasm-runtime-nowasi.a"))
             if [asset.get("path") for asset in assets] != expected_paths:
                 raise ValueError(f"Runtime-pack {name} archive paths are unexpected.")
             allowed_symbols = archive.read(

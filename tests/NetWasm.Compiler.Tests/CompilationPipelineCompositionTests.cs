@@ -320,7 +320,8 @@ public sealed class CompilationPipelineCompositionTests
             IEnumerable<string>? originalContractReferencePaths,
             NetWasm.Compiler.Core.NativeInterop.INativeImportBinder? nativeBinding,
             NetWasm.Compiler.Core.NativeInterop.INativeVariadicCallPlanner? nativeVariadics,
-            NetWasm.Compiler.Core.GeneratedJavaScriptBinding? javaScriptBinding) =>
+            NetWasm.Compiler.Core.GeneratedJavaScriptBinding? javaScriptBinding,
+            bool simd) =>
             Load(entryAssemblyPath, referencePaths, aliases, metadataReferencePaths, originalContractReferencePaths);
     }
 

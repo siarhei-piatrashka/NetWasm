@@ -13,6 +13,7 @@ public sealed record ComponentTarget(
     string WasiVersion,
     string CanonicalStringEncoding)
 {
+    public bool Simd { get; init; } = true;
     public static ComponentTarget Wasm32Wasi02 { get; } =
         new("wasm32", "0.2", "utf8");
 

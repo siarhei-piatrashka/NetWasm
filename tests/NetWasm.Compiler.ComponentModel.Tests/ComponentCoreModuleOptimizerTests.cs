@@ -10,6 +10,17 @@ namespace NetWasm.Compiler.ComponentModel.Tests;
 
 public sealed class ComponentCoreModuleOptimizerTests
 {
+    [Fact]
+    public void ScalarOutputCannotBeVectorizedByTheOptimizer()
+    {
+        var stages = new RecordingStages();
+        Create(stages).Optimize("input", "output",
+            ComponentTarget.Wasm32Wasi02 with { Simd = false }, FinalWasmOptimization.O3);
+        Assert.Contains("--disable-simd", stages.Arguments);
+        Assert.DoesNotContain("--enable-simd", stages.Arguments);
+        Assert.False(stages.ValidationTarget!.Simd);
+    }
+
     [Theory]
     [InlineData("wasm32", FinalWasmOptimization.None, null)]
     [InlineData("wasm64", FinalWasmOptimization.None, null)]

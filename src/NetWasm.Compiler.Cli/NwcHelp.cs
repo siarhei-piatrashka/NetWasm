@@ -38,6 +38,7 @@ internal static class NwcHelp
         "                              names from it at startup",
         "-gc:<collector>               The collector the program runs with: Compact, NetWasm,",
         "                              NetWasmGen or Bump (default: the runtime's)",
+        "-simd[+|-]                    Enable SIMD (default); -simd- uses software vectors",
         "",
         "                        - INPUT FILES -",
         "-reference:<file list>        Reference metadata from the specified assembly",

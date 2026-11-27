@@ -216,8 +216,10 @@ NODE
 
   for collector_directory in compact netwasm netwasmgen bump; do
   if [[ -n "$only" && "${only#*/}" != "$collector_directory" ]]; then continue; fi
+  for simd in true false; do
   for native_profile in size speed; do
   collector_root="$target_root/$collector_directory"
+  if [[ "$simd" = false ]]; then collector_root="$collector_root/scalar"; fi
   if [[ "$native_profile" = speed ]]; then collector_root="$collector_root/speed"; fi
   mkdir -p "$collector_root"
   "$repo_root/eng/build-netwasm-runtime.sh" \
@@ -226,6 +228,7 @@ NODE
     --target "$target" \
     --configuration release \
     --native-profile "$native_profile" \
+    --simd "$simd" \
     --relocatable \
     --output "$collector_root/libnetwasm-runtime.a" \
     --collector-output "$collector_root/libgc.a" \
@@ -247,7 +250,7 @@ NODE
       exit 1
     }
     initial_memory=$(( (base + 262144 + wasm_page_size - 1) / wasm_page_size * wasm_page_size ))
-    proof="$temporary_root/$target-$collector_directory-$native_profile-$base.wasm"
+    proof="$temporary_root/$target-$collector_directory-$simd-$native_profile-$base.wasm"
     "$wasm_ld" "$machine" -Bstatic --strip-debug --table-base=1 \
       --whole-archive "$collector_root/libnetwasm-runtime.a" "$collector_root/libnetwasm-runtime-wasi.a" \
       --no-whole-archive \
@@ -266,8 +269,12 @@ NODE
       -mllvm -combiner-global-alias-analysis=false \
       -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr \
       "${export_args[@]}" -o "$proof"
-    wasm-tools validate "$proof" --features all
-    wat="$temporary_root/$target-$collector_directory-$native_profile-$base.wat"
+    if [[ "$simd" = false ]]; then
+      wasm-tools validate "$proof" --features all,-simd,-relaxed-simd
+    else
+      wasm-tools validate "$proof" --features all
+    fi
+    wat="$temporary_root/$target-$collector_directory-$simd-$native_profile-$base.wat"
     wasm-tools print "$proof" > "$wat"
     heap_index="$(grep -F '(export "__heap_base"' "$wat" | sed -E 's/.*global ([0-9]+).*/\1/')"
     heap_base="$(grep -E '^  \(global ' "$wat" | sed -n "$((heap_index + 1))p" | sed -E 's/.*const ([0-9]+)\).*/\1/')"
@@ -287,7 +294,7 @@ NODE
 
   # Native code's C library imports no WASI Preview 1: each function whose musl version would import it is replaced
   # by the runtime. Link them all, live, and reject any Preview 1 import that remains.
-  if [[ "$collector_directory" = compact && "$native_profile" = size ]]; then
+  if [[ "$collector_directory" = compact && "$native_profile" = size && "$simd" = true ]]; then
     libc_proof="$temporary_root/$target-libc-closure.wasm"
     libc_exports=()
     for libc_function in clock_gettime clock_getres time gettimeofday clock timespec_get getentropy \
@@ -354,6 +361,7 @@ fs.writeFileSync(path, `${JSON.stringify({
   runtimeFootprintBytes: Number(footprint),
 }, null, 2)}\n`);
 NODE
+  done
   done
   done
 done

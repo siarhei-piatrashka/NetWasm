@@ -34,7 +34,7 @@ internal static class FrameRangeZeroing
         }
         for (var written = 0; written < size;)
         {
-            var width = Width(size - written);
+            var width = target.Simd ? Width(size - written) : Math.Min(8, Width(size - written));
             start(code);
             if (width == 16)
             {
@@ -57,11 +57,12 @@ internal static class FrameRangeZeroing
     }
 
     // The instructions that store or fill a range of this size: one per stored chunk, or the fill.
-    public static int Writes(int size)
+    public static int Writes(int size, bool simd = true)
     {
         if (size > MaximumStoredBytes) return 1;
         var writes = 0;
-        for (var written = 0; written < size; written += Width(size - written)) writes++;
+        for (var written = 0; written < size; written += simd ? Width(size - written) : Math.Min(8, Width(size - written)))
+            writes++;
         return writes;
     }
 

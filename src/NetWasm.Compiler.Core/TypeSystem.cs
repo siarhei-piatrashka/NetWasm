@@ -168,7 +168,7 @@ public sealed class CliTypeIdentity : IEquatable<CliTypeIdentity>
     // they are made from, so a cached identity is exactly the one the factory would build.
     // Each compile makes the same identities millions of times; sharing them removes most of
     // the allocation and the canonical names built for them.
-    private static readonly ConcurrentDictionary<(string Assembly, string Namespace, string Name, bool IsValueType), CliTypeIdentity>
+    private static readonly ConcurrentDictionary<(string Assembly, string Namespace, string Name, bool IsValueType, bool Simd), CliTypeIdentity>
         s_named = new();
     private static readonly ConcurrentDictionary<InstantiationKey, CliTypeIdentity> s_instantiations = new();
     private static readonly ConditionalWeakTable<CliTypeIdentity, CliTypeIdentity> s_byReferences = new();
@@ -178,21 +178,23 @@ public sealed class CliTypeIdentity : IEquatable<CliTypeIdentity>
         AssemblyIdentity assembly,
         string @namespace,
         string name,
-        bool isValueType)
+        bool isValueType,
+        bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(name);
-        var key = (assembly.Name ?? "", @namespace ?? "", name, isValueType);
+        var key = (assembly.Name ?? "", @namespace ?? "", name, isValueType, simd);
         return s_named.TryGetValue(key, out var shared)
             ? shared
             : s_named.GetOrAdd(key, static key => CreateNamed(
-                new AssemblyIdentity(key.Assembly), key.Namespace, key.Name, key.IsValueType));
+                new AssemblyIdentity(key.Assembly), key.Namespace, key.Name, key.IsValueType, key.Simd));
     }
 
     private static CliTypeIdentity CreateNamed(
         AssemblyIdentity assembly,
         string @namespace,
         string name,
-        bool isValueType)
+        bool isValueType,
+        bool simd)
     {
         var fullName = string.IsNullOrEmpty(@namespace)
             ? name
@@ -256,7 +258,7 @@ public sealed class CliTypeIdentity : IEquatable<CliTypeIdentity>
             "System.Numerics.Plane" => new(
                 $"[{assembly.Name}]{fullName}",
                 CliTypeShape.Named,
-                CliValueKind.V128,
+                simd ? CliValueKind.V128 : CliValueKind.ValueType,
                 isValueType,
                 assembly: assembly,
                 fullName: fullName),
@@ -317,7 +319,7 @@ public sealed class CliTypeIdentity : IEquatable<CliTypeIdentity>
         var hasExplicitStorage = type.IsEnum || type.EnumUnderlyingType.StackKind != CliValueKind.ValueType;
         if (!hasExplicitStorage)
         {
-            return Named(type.Key.Assembly, type.Namespace, type.Name, type.IsValueType);
+            return Named(type.Key.Assembly, type.Namespace, type.Name, type.IsValueType, type.Simd);
         }
 
         var identity = Named(
@@ -645,6 +647,7 @@ public sealed record TypeDefinitionModel(
     ImmutableArray<EntityKey> Fields,
     ImmutableArray<EntityKey> Methods)
 {
+    public bool Simd { get; init; } = true;
     public CliTypeLayoutKind LayoutKind { get; init; }
     public int PackingSize { get; init; }
     public int DeclaredSize { get; init; }
@@ -1303,6 +1306,8 @@ public enum RuntimeIntrinsic
     // Runs the finalizers a collection has queued and yields the exception one let escape, or null
     // (GCFinalizerRuntime.RunQueued; the runtime's finalizer safepoint).
     GcRunQueuedFinalizers,
+    SimdIsHardwareAccelerated,
+    PackedSimdUnsupported,
 }
 
 public static class RuntimeIntrinsicKinds

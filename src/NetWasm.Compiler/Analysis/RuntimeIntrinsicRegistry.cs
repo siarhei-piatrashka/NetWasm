@@ -21,7 +21,7 @@ public sealed class RuntimeIntrinsicRegistry : IRuntimeIntrinsicRegistry
 
     private readonly Dictionary<EntityKey, RuntimeIntrinsic> _intrinsics;
 
-    public RuntimeIntrinsicRegistry(ISymbolFormatter symbols, IEnumerable<MethodDefinitionModel> methods)
+    public RuntimeIntrinsicRegistry(ISymbolFormatter symbols, IEnumerable<MethodDefinitionModel> methods, bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(symbols);
         ArgumentNullException.ThrowIfNull(methods);
@@ -183,11 +183,11 @@ public sealed class RuntimeIntrinsicRegistry : IRuntimeIntrinsicRegistry
                     RuntimeIntrinsic.NativeMemoryCopy,
                 ("System.Runtime.InteropServices.NativeMemory", "Fill") =>
                     RuntimeIntrinsic.NativeMemoryFill,
-                ("System.Runtime.CompilerServices.ArrayLoops", "Fill") =>
+                ("System.Runtime.CompilerServices.ArrayLoops", "Fill") when simd =>
                     RuntimeIntrinsic.ArrayLoopFill,
                 ("System.Runtime.CompilerServices.ArrayLoops", "Copy") =>
                     RuntimeIntrinsic.ArrayLoopCopy,
-                ("System.Runtime.CompilerServices.ArrayLoops", "FillInBounds") =>
+                ("System.Runtime.CompilerServices.ArrayLoops", "FillInBounds") when simd =>
                     RuntimeIntrinsic.ArrayLoopFillInBounds,
                 ("System.Runtime.CompilerServices.ArrayLoops", "CopyInBounds") =>
                     RuntimeIntrinsic.ArrayLoopCopyInBounds,
@@ -340,9 +340,12 @@ public sealed class RuntimeIntrinsicRegistry : IRuntimeIntrinsicRegistry
                 ("System.MathF", "Min") when IsFloatingBinary(method, CliValueKind.F4) =>
                     RuntimeIntrinsic.FloatingMinimum,
                 (PackedSimdInstructions.DeclaringType, "get_IsSupported") => RuntimeIntrinsic.PackedSimdIsSupported,
-                (PackedSimdInstructions.DeclaringType, _) when PackedSimdInstructions.TryGet(method, out _) =>
+                (PackedSimdInstructions.DeclaringType, _) when !simd => RuntimeIntrinsic.PackedSimdUnsupported,
+                ("System.Runtime.Intrinsics.Vector64" or "System.Runtime.Intrinsics.Vector128" or
+                    "System.Numerics.Vector", "get_IsHardwareAccelerated") when !simd => RuntimeIntrinsic.SimdIsHardwareAccelerated,
+                (PackedSimdInstructions.DeclaringType, _) when simd && PackedSimdInstructions.TryGet(method, out _) =>
                     RuntimeIntrinsic.PackedSimdInstruction,
-                (var declaringType, _) => SimdVectorIntrinsicClassifier.Classify(declaringType, method),
+                (var declaringType, _) => simd ? SimdVectorIntrinsicClassifier.Classify(declaringType, method) : null,
             };
             if (intrinsic is not null)
             {

@@ -26,6 +26,7 @@ public sealed class PackageNativeArchiveSelectionTask : Task
     public string WasmTarget { get; set; } = string.Empty;
 
     public ITaskItem[] ExistingNativeLibraries { get; set; } = [];
+    public bool Simd { get; set; } = true;
 
     [Output]
     public ITaskItem[] NativeLibraries { get; private set; } = [];
@@ -39,7 +40,7 @@ public sealed class PackageNativeArchiveSelectionTask : Task
                 .Where(item => string.Equals(item.GetMetadata("WasmTarget"), WasmTarget, StringComparison.Ordinal))
                 .Select(item => item.GetMetadata("NetWasmLibraryName"))
                 .ToHashSet(StringComparer.Ordinal);
-            NativeLibraries = [.. PackageNativeArchiveSelector.Select(PackageFiles(ProjectAssetsFile), emscripten)
+            NativeLibraries = [.. PackageNativeArchiveSelector.Select(PackageFiles(ProjectAssetsFile), emscripten, Simd)
                 .Where(archive => !named.Contains(archive.LibraryName))
                 .Select(archive =>
                 {

@@ -11,6 +11,43 @@ namespace NetWasm.Runtime.Pack.Tests.Materialization;
 
 public sealed class RuntimePackTargetSelectorTests
 {
+    [Theory]
+    [InlineData(RuntimeWasmOptimization.O0, false)]
+    [InlineData(RuntimeWasmOptimization.Oz, false)]
+    [InlineData(RuntimeWasmOptimization.O3, true)]
+    public void ScalarBuildUsesScalarArchivesAndDisablesSimdValidation(RuntimeWasmOptimization mode, bool speed)
+    {
+        var manifest = RuntimePackTestData.Manifest();
+        var key = ("wasm32", "Compact");
+        var original = manifest.TargetLookup[key];
+        var scalar = original.Speed! with
+        {
+            RuntimeArchive = RuntimePackTestData.Asset("wasm32/compact/scalar/libnetwasm-runtime.a"),
+            CollectorArchive = RuntimePackTestData.Asset("wasm32/compact/scalar/libgc.a"),
+            PlatformArchives = RuntimePackTestData.PlatformArchives("wasm32/compact/scalar"),
+            RuntimeFootprintBytes = original.RuntimeFootprintBytes + 8192,
+        };
+        var scalarSpeed = scalar with
+        {
+            RuntimeArchive = RuntimePackTestData.Asset("wasm32/compact/scalar/speed/libnetwasm-runtime.a"),
+            CollectorArchive = RuntimePackTestData.Asset("wasm32/compact/scalar/speed/libgc.a"),
+            PlatformArchives = RuntimePackTestData.PlatformArchives("wasm32/compact/scalar/speed"),
+            RuntimeFootprintBytes = scalar.RuntimeFootprintBytes + 4096,
+        };
+        manifest = manifest with { TargetLookup = manifest.TargetLookup.SetItem(key,
+            original with { Scalar = scalar, ScalarSpeed = scalarSpeed }) };
+        var selector = new RuntimePackTargetSelector(new RuntimeOptimizationPolicyResolver());
+        var result = selector.Select(manifest, key.Item1, key.Item2, mode, simd: false);
+        Assert.Equal(speed ? scalarSpeed.RuntimeArchive : scalar.RuntimeArchive, result.RuntimeArchive);
+        Assert.Equal(speed ? scalarSpeed.CollectorArchive : scalar.CollectorArchive, result.CollectorArchive);
+        Assert.Equal(speed ? scalarSpeed.PlatformArchives : scalar.PlatformArchives, result.PlatformArchives);
+        Assert.Equal(speed ? scalarSpeed.RuntimeFootprintBytes : scalar.RuntimeFootprintBytes, result.RuntimeFootprintBytes);
+        Assert.DoesNotContain("simd", result.NativeValidation!.Features);
+        Assert.Contains("simd", original.NativeValidation!.Features);
+        Assert.Throws<InvalidOperationException>(() => selector.Select(RuntimePackTestData.Manifest(),
+            key.Item1, key.Item2, mode, simd: false));
+    }
+
     public static IEnumerable<object[]> ProfileCases()
     {
         foreach (var target in new[] { "wasm32", "wasm64" })

@@ -24,7 +24,8 @@ public sealed class MetadataCompilationLoader(
         IEnumerable<string>? originalContractReferencePaths = null,
         INativeImportBinder? nativeBinding = null,
         INativeVariadicCallPlanner? nativeVariadics = null,
-        GeneratedJavaScriptBinding? javaScriptBinding = null)
+        GeneratedJavaScriptBinding? javaScriptBinding = null,
+        bool simd = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(entryAssemblyPath);
         ArgumentNullException.ThrowIfNull(referencePaths);
@@ -50,7 +51,7 @@ public sealed class MetadataCompilationLoader(
                 try
                 {
                     parsed[index] = assemblies.Load(inputs[index], referenceAssemblyAliases, typeForwarders, nativeBinding,
-                        nativeVariadics, javaScriptBinding);
+                        nativeVariadics, javaScriptBinding, simd);
                 }
 #pragma warning disable CA1031 // Rethrown below, in path order.
                 catch (Exception exception)

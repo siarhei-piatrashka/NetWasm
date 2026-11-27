@@ -111,7 +111,8 @@ internal sealed class SignatureTypeProvider : ISignatureTypeProvider<CliTypeIden
             _assemblyIdentityAliases.Canonicalize(_sourceAssembly, Qualify(typeNamespace, typeName)),
             typeNamespace,
             typeName,
-            IsValueType(rawTypeKind));
+            IsValueType(rawTypeKind),
+            _assemblyIdentityAliases.Simd);
         if (identity.Shape == CliTypeShape.Named &&
             IsEnumDefinition(reader, handle))
         {
@@ -135,7 +136,8 @@ internal sealed class SignatureTypeProvider : ISignatureTypeProvider<CliTypeIden
             _assemblyIdentityAliases.Canonicalize(assembly, fullName),
             "",
             fullName,
-            IsValueType(rawTypeKind));
+            IsValueType(rawTypeKind),
+            _assemblyIdentityAliases.Simd);
     }
 
     public CliTypeIdentity GetTypeFromSpecification(

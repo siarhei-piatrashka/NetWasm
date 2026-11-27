@@ -89,6 +89,7 @@
     <!-- A method that names a member NetWasm lacks compiles to a body that throws MissingMethodException or
          MissingFieldException when called, with warning NW1016; true makes NW1016 an error. -->
     <NetWasmMissingApiAsError Condition="'$(NetWasmMissingApiAsError)' == ''">false</NetWasmMissingApiAsError>
+    <NetWasmSimd Condition="'$(NetWasmSimd)' == ''">true</NetWasmSimd>
     <NetWasmStructuredDiagnostics Condition="'$(NetWasmStructuredDiagnostics)' == '' AND '$(Configuration)' == 'Debug'">true</NetWasmStructuredDiagnostics>
     <NetWasmStructuredDiagnostics Condition="'$(NetWasmStructuredDiagnostics)' == ''">false</NetWasmStructuredDiagnostics>
     <!-- A Debug build compiles for build speed; a project or command line that sets a level keeps it. -->
@@ -263,6 +264,7 @@
       <!-- The collector decides what the compiler emits around stores and allocations. -->
       <_NetWasmCompilationIdentityLine Include="garbageCollector=$(NetWasmGarbageCollector)" />
       <_NetWasmCompilationIdentityLine Include="missingApiAsError=$(NetWasmMissingApiAsError)" />
+      <_NetWasmCompilationIdentityLine Include="simd=$(NetWasmSimd)" />
       <!-- The linked native libraries decide which P/Invokes bind and which throw DllNotFoundException. -->
       <_NetWasmCompilationIdentityLine Include="@(NativeLibrary->'nativeLibrary=%(NetWasmLibraryName)/%(WasmTarget)')" />
       <!-- Folded feature switches change compiled bodies. -->
@@ -425,6 +427,7 @@
                         RuntimeHostConfigurationOptions="@(RuntimeHostConfigurationOption)"
                         LinkedNativeOnly="true"
                         MissingApiAsError="$(NetWasmMissingApiAsError)"
+                        Simd="$(NetWasmSimd)"
                         WasmToolsNodePath="$(NetWasmNodePath)"
                         WasmToolsCommandPath="$(NetWasmWasmToolsCommandPath)"
                         WasmToolsModulePath="$(NetWasmWasmToolsModulePath)"
@@ -590,6 +593,7 @@
                              Optimization="$(_NetWasmCanonicalOptimization)"
                              ManagedInliningHints="$(NetWasmManagedInliningHints)"
                              OptimizerConverge="$(NetWasmOptimizerConverge)"
+                             Simd="$(NetWasmSimd)"
                              OptimizerLowMemoryUnused="$(NetWasmOptimizerLowMemoryUnused)"
                              StructuredDiagnostics="$(NetWasmStructuredDiagnostics)">
       <Output TaskParameter="Components" ItemName="_NetWasmBuiltComponent" />
@@ -627,6 +631,7 @@
                               Target="$(NetWasmTarget)"
                               ManagedInliningHints="$(NetWasmManagedInliningHints)"
                               OptimizerConverge="$(NetWasmOptimizerConverge)"
+                              Simd="$(NetWasmSimd)"
                               OptimizerLowMemoryUnused="$(NetWasmOptimizerLowMemoryUnused)"
                               Optimization="$(_NetWasmCanonicalOptimization)">
       <Output TaskParameter="Modules" ItemName="_NetWasmBuiltRawModule" />

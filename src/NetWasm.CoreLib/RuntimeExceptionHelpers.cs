@@ -92,6 +92,9 @@ namespace System
         internal static Exception GetNotSupportedException() => new NotSupportedException();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static Exception GetPlatformNotSupportedException() => new PlatformNotSupportedException();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static Exception GetJSException() => new JSException();
     }
 }

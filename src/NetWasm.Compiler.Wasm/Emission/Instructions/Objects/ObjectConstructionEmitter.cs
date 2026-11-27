@@ -268,7 +268,7 @@ internal sealed class ObjectConstructionEmitter(
             request.Instruction.Offset];
         EmitValueFrameAddress(code, request.Context, offset);
         code.Write(WasmInstruction.WithOperand(WasmOpcodes.LocalSet, WasmInstructionOperand.Unsigned((uint)(request.Context.ObjectTemporary))));
-        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, request.Context.ObjectTemporary, value.Size))
+        if (!SmallBlockEmitter.TryEmitKnownSizeZero(code, request.Context.ObjectTemporary, value.Size, layouts.Target.Simd))
         {
             code.Write(WasmInstruction.WithOperand(WasmOpcodes.LocalGet, WasmInstructionOperand.Unsigned((uint)(request.Context.ObjectTemporary))));
             code.Write(WasmInstruction.WithOperand(WasmOpcodes.I32Constant, WasmInstructionOperand.Signed(0)));

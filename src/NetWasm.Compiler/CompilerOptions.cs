@@ -49,6 +49,7 @@ public sealed record CompilerOptions(
     WasmOptimizationOverrides? OptimizationOverrides = null,
     ImmutableArray<string> MetadataReferencePaths = default)
 {
+    public bool Simd => OptimizationOverrides?.Simd ?? true;
     /// <summary>Original declaration images used for contract validation, never executable references.</summary>
     public ImmutableArray<string> OriginalContractReferencePaths { get; init; } = [];
 

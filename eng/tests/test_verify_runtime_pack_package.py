@@ -72,6 +72,19 @@ class RuntimePackPackageTests(unittest.TestCase):
                     "systemLibraries": {"names": ["libc.a"], "assets": [
                         self.asset(f"{target}/system-libraries/libc.a", b"system")]},
                 })
+                for profile, directory in (("scalar", "scalar"), ("scalarSpeed", "scalar/speed")):
+                    self.entries[f"runtime/{prefix}/{directory}/layout.json"] = json.dumps({
+                        "schemaVersion": 1, "target": target, "runtimeFootprintBytes": 74_096,
+                    }).encode()
+                    targets[-1][profile] = {
+                        "runtimeFootprintBytes": 74_096,
+                        "runtimeArchive": self.asset(f"{prefix}/{directory}/libnetwasm-runtime.a", b"scalar-runtime"),
+                        "collectorArchive": self.asset(f"{prefix}/{directory}/libgc.a", b"scalar-collector"),
+                        "platformArchives": {
+                            "wasi": self.asset(f"{prefix}/{directory}/libnetwasm-runtime-wasi.a", b"scalar-wasi"),
+                            "noWasi": self.asset(f"{prefix}/{directory}/libnetwasm-runtime-nowasi.a", b"scalar-nowasi"),
+                        },
+                    }
         self.manifest = {"schemaVersion": 7, "emscriptenVersion": "6.0.7",
                          "defaultGarbageCollector": "Compact", "exports": ["allocate"],
                          "targets": targets}
@@ -142,6 +155,23 @@ class RuntimePackPackageTests(unittest.TestCase):
 
     def test_rejects_speed_archive_digest_mismatch(self) -> None:
         self.entries["runtime/wasm64/bump/speed/libgc.a"] = b"changed-speed-collector"
+        with self.assertRaisesRegex(ValueError, "digest mismatch"):
+            MODULE.inspect(self.package(), self.root, self.version)
+
+    def test_rejects_missing_scalar_profile_and_wrong_archive(self) -> None:
+        for profile in ("scalar", "scalarSpeed"):
+            with self.subTest(profile=profile):
+                manifest = copy.deepcopy(self.manifest)
+                del manifest["targets"][0][profile]
+                with self.assertRaisesRegex(ValueError, f"{profile} profile"):
+                    MODULE.inspect(self.package(manifest), self.root, self.version)
+                manifest = copy.deepcopy(self.manifest)
+                manifest["targets"][0][profile]["collectorArchive"] = manifest["targets"][0]["collectorArchive"]
+                with self.assertRaisesRegex(ValueError, "archive paths"):
+                    MODULE.inspect(self.package(manifest), self.root, self.version)
+
+    def test_rejects_scalar_archive_digest_mismatch(self) -> None:
+        self.entries["runtime/wasm32/compact/scalar/speed/libgc.a"] = b"changed-scalar-collector"
         with self.assertRaisesRegex(ValueError, "digest mismatch"):
             MODULE.inspect(self.package(), self.root, self.version)
 

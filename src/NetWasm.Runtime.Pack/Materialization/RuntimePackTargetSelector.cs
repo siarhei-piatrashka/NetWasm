@@ -11,7 +11,8 @@ internal sealed class RuntimePackTargetSelector(IRuntimeOptimizationPolicyResolv
     private readonly IRuntimeOptimizationPolicyResolver _policies = policies ?? throw new ArgumentNullException(nameof(policies));
 
     public RuntimePackTarget Select(RuntimePackManifest manifest, string target, string? garbageCollector,
-        RuntimeWasmOptimization optimization = RuntimeWasmOptimization.Oz)
+        RuntimeWasmOptimization optimization = RuntimeWasmOptimization.Oz,
+        bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         ArgumentException.ThrowIfNullOrWhiteSpace(target);
@@ -21,15 +22,21 @@ internal sealed class RuntimePackTargetSelector(IRuntimeOptimizationPolicyResolv
             throw new InvalidOperationException(RuntimeGarbageCollectors.ValidationMessage);
         if (!manifest.TargetLookup.TryGetValue((target, selected), out var result))
             throw new InvalidOperationException("The requested NetWasm runtime target and collector pair is unavailable.");
-        if (!policy.PreferNativeSpeed)
+        if (!policy.PreferNativeSpeed && simd)
             return result;
-        var speed = result.Speed ?? throw new InvalidOperationException("The NetWasm runtime speed assets are unavailable.");
+        var speed = (simd ? result.Speed : policy.PreferNativeSpeed ? result.ScalarSpeed : result.Scalar) ??
+            throw new InvalidOperationException(simd
+                ? "The NetWasm runtime speed assets are unavailable."
+                : "NetWasmSimd=false requires a runtime pack containing scalar native assets.");
         return result with
         {
             RuntimeFootprintBytes = speed.RuntimeFootprintBytes,
             RuntimeArchive = speed.RuntimeArchive,
             CollectorArchive = speed.CollectorArchive,
             PlatformArchives = speed.PlatformArchives,
+            NativeValidation = !simd && result.NativeValidation is { } profile
+                ? profile with { Features = profile.Features.Remove("simd") }
+                : result.NativeValidation,
         };
     }
 }

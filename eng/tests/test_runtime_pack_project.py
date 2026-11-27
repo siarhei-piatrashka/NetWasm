@@ -32,7 +32,7 @@ def runtime_tree_files() -> list[str]:
         files += [f"{target}/allowed-undefined-symbols.txt", f"{target}/libnetwasm-emscripten-support.a",
                   f"{target}/libnetwasm-emscripten-stand-ins.a", f"{target}/system-libraries/libc.a"]
         for collector in VERIFY.GARBAGE_COLLECTORS:
-            for profile in ("", "speed/"):
+            for profile in ("", "speed/", "scalar/", "scalar/speed/"):
                 files += [f"{target}/{collector.lower()}/{profile}{name}" for name in COLLECTOR_FILES]
     return files
 

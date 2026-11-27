@@ -86,6 +86,10 @@ internal static class WasmLocalLayoutPlanner
         new[] { CliValueKind.I4, CliValueKind.I8, CliValueKind.F4, CliValueKind.F8, CliValueKind.V128 }
             .SelectMany(type => Enumerable.Repeat(type, slotCount));
 
+    // Keep the reserved bank's indices stable without requiring SIMD types in scalar modules.
+    public static IEnumerable<CliValueKind> TemporaryLocalTypes(bool simd) =>
+        TemporaryLocals.Select(type => type == CliValueKind.V128 && !simd ? CliValueKind.I8 : type);
+
     public static int GetEvaluationStackLocal(
         EvaluationStackLocalLayout layout,
         int slot,
@@ -111,13 +115,14 @@ internal static class WasmLocalLayoutPlanner
     public static ImmutableArray<CliValueKind> CreateMethodLocals(
         StructuredMethodHeader header,
         int exceptionGroupCount,
-        IReadOnlySet<int> spilledScalarLocals)
+        IReadOnlySet<int> spilledScalarLocals,
+        bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(header);
         ArgumentOutOfRangeException.ThrowIfNegative(exceptionGroupCount);
         ArgumentNullException.ThrowIfNull(spilledScalarLocals);
 
-        var types = CreateEvaluationLocals(header, spilledScalarLocals);
+        var types = CreateEvaluationLocals(header, spilledScalarLocals, simd);
         types.Add(CliValueKind.ManagedReference);
         types.Add(CliValueKind.ManagedAddress);
         types.Add(CliValueKind.ManagedReference);
@@ -127,27 +132,29 @@ internal static class WasmLocalLayoutPlanner
         }
         types.Add(CliValueKind.ManagedAddress);
         types.Add(CliValueKind.ManagedAddress);
-        types.AddRange(TemporaryLocals);
+        types.AddRange(TemporaryLocalTypes(simd));
         return types.ToImmutable();
     }
 
     public static ImmutableArray<CliValueKind> CreateFilterLocals(
-        StructuredMethodHeader header)
+        StructuredMethodHeader header,
+        bool simd = true)
     {
         ArgumentNullException.ThrowIfNull(header);
 
-        var types = CreateEvaluationLocals(header, ImmutableHashSet<int>.Empty);
+        var types = CreateEvaluationLocals(header, ImmutableHashSet<int>.Empty, simd);
         types.Add(CliValueKind.ManagedReference);
         types.Add(CliValueKind.ManagedAddress);
         types.Add(CliValueKind.ManagedReference);
         types.Add(CliValueKind.ManagedAddress);
-        types.AddRange(TemporaryLocals);
+        types.AddRange(TemporaryLocalTypes(simd));
         return types.ToImmutable();
     }
 
     private static ImmutableArray<CliValueKind>.Builder CreateEvaluationLocals(
         StructuredMethodHeader header,
-        IReadOnlySet<int> spilledScalarLocals)
+        IReadOnlySet<int> spilledScalarLocals,
+        bool simd)
     {
         var types = ImmutableArray.CreateBuilder<CliValueKind>(
             checked(header.Locals.Length + header.MaxStack * 5 + 16));
@@ -160,7 +167,8 @@ internal static class WasmLocalLayoutPlanner
                 : local.StackKind);
         }
 
-        types.AddRange(EvaluationStackLocalTypes(header.MaxStack));
+        types.AddRange(EvaluationStackLocalTypes(header.MaxStack)
+            .Select(type => type == CliValueKind.V128 && !simd ? CliValueKind.I8 : type));
 
         return types;
     }

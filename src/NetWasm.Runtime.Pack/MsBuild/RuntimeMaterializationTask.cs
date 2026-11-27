@@ -68,6 +68,7 @@ public sealed class RuntimeMaterializationTask : Task
     public string Target { get; set; } = string.Empty;
 
     public string Optimization { get; set; } = "Oz";
+    public bool Simd { get; set; } = true;
 
     public string GarbageCollector { get; set; } = string.Empty;
 
@@ -159,6 +160,7 @@ public sealed class RuntimeMaterializationTask : Task
                     NodeVersion))
             {
                 GarbageCollector = garbageCollector,
+                Simd = Simd,
                 NativeLibraries = _nativeLibraries.Read(NativeLibraries),
                 NativeCallbackObjectPath = NativeCallbackObjectPath,
                 NativeWasmToolsPath = NativeWasmToolsPath.Length == 0 ? null : NativeWasmToolsPath,

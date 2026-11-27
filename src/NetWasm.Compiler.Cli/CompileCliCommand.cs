@@ -84,6 +84,8 @@ internal sealed class CompileCliCommand(
             options.ManagedRangeBranchFolding,
             options.ManagedUnwrittenStaticFieldFolding,
             options.ManagedConditionalSelects);
+        if (!options.Simd)
+            overrides = (overrides ?? new()) with { Simd = false };
         var entryPoint = options.Target == NwcTarget.Exe ? _entryPoints.Read(options.Input) : null;
         using var session = _sessions.Create(options.WasmTools);
         var compilation = session.Compile(new CompilerOptions(

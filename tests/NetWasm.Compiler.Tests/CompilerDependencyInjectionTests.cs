@@ -148,7 +148,8 @@ public sealed class CompilerDependencyInjectionTests
             IEnumerable<string>? originalContractReferencePaths,
             NetWasm.Compiler.Core.NativeInterop.INativeImportBinder? nativeBinding,
             NetWasm.Compiler.Core.NativeInterop.INativeVariadicCallPlanner? nativeVariadics,
-            NetWasm.Compiler.Core.GeneratedJavaScriptBinding? javaScriptBinding) =>
+            NetWasm.Compiler.Core.GeneratedJavaScriptBinding? javaScriptBinding,
+            bool simd) =>
             throw new StageReplacementObservedException(entryAssemblyPath);
     }
 

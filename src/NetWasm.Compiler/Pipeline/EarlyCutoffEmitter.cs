@@ -166,7 +166,7 @@ internal sealed class EarlyCutoffEmitter(
             overlay[(UnitQueryKind.DispatchCallSite, key)] = new UnitLookup<DispatchCallSiteModel>(true, site);
         foreach (var (key, site) in analyzed.Sites.TypeTestSites)
             overlay[(UnitQueryKind.TypeTestSite, key)] = new UnitLookup<TypeTestSiteModel>(true, site);
-        var intrinsics = intrinsicRegistries.Create(symbols, metadata.Methods);
+        var intrinsics = intrinsicRegistries.Create(symbols, metadata.Methods, options.Simd);
         if (ByRefEffects(methods, intrinsics, plans.Program, analyzed, overlay) is { } byRefChange)
             return Declined(byRefChange);
         foreach (var (id, locations) in stackTraces?.EditedLocations ?? [])
@@ -214,7 +214,7 @@ internal sealed class EarlyCutoffEmitter(
 
         // Emitted against the last compile, into its module.
         using var emitter = replayEmitters.Create(replay, types, typeDefinitions, fields, methods, symbols, typeClassifier,
-            intrinsics, options.Target);
+            intrinsics, options.Target, options.Simd);
         var patched = new Dictionary<int, byte[]>();
         var emitted = new List<WasmFunctionDefinition>(analyzed.Methods.Length);
         foreach (var method in analyzed.Methods)

@@ -109,6 +109,7 @@ public sealed class NetWasmComponentizeTask : Microsoft.Build.Utilities.Task
 
     // Repeats wasm-opt's preset until the module stops shrinking.
     public bool OptimizerConverge { get; set; }
+    public bool Simd { get; set; } = true;
 
     // A plain core module (OutputType CoreModule): the linked core module itself, without WASI,
     // and no component manifest.
@@ -144,7 +145,7 @@ public sealed class NetWasmComponentizeTask : Microsoft.Build.Utilities.Task
             };
             var optimization = ParseOptimization();
             var optimizationOverrides = OptimizerOverridesParser.Apply(
-                _inlineHints.Parse(ManagedInliningHints), OptimizerConverge, OptimizerLowMemoryUnused);
+                _inlineHints.Parse(ManagedInliningHints), OptimizerConverge, OptimizerLowMemoryUnused, Simd);
             var inputs = _manifestInputs.Read(new(
                 InteropManifestPath,
                 Target,

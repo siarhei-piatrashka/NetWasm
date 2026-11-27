@@ -58,6 +58,8 @@ internal sealed record RuntimePackTarget(
     public string GarbageCollector { get; init; } = string.Empty;
     public RuntimeNativeValidationProfile? NativeValidation { get; init; }
     public RuntimePackSpeedAssets? Speed { get; init; }
+    public RuntimePackSpeedAssets? Scalar { get; init; }
+    public RuntimePackSpeedAssets? ScalarSpeed { get; init; }
     public RuntimePackPlatformArchives? PlatformArchives { get; init; }
     public RuntimePackEmscriptenArchives? EmscriptenArchives { get; init; }
     // The C++ libraries with Wasm exception handling, for archives that throw or catch C++ exceptions.
@@ -198,6 +200,7 @@ internal sealed record RuntimeMaterializationRequest(
     long? MaximumMemorySizeBytes,
     RuntimeBuildIdentity BuildIdentity)
 {
+    public bool Simd { get; init; } = true;
     public string? GarbageCollector { get; init; }
     public ImmutableArray<RuntimeNativeLibraryDescriptor> NativeLibraries { get; init; } = [];
     public string? NativeCallbackObjectPath { get; init; }

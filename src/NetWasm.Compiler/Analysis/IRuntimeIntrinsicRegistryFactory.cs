@@ -10,5 +10,6 @@ internal interface IRuntimeIntrinsicRegistryFactory
 {
     IRuntimeIntrinsicRegistry Create(
         ISymbolFormatter symbols,
-        IEnumerable<MethodDefinitionModel> methods);
+        IEnumerable<MethodDefinitionModel> methods,
+        bool simd = true);
 }

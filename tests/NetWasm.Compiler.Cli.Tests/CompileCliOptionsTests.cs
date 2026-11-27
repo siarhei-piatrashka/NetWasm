@@ -23,6 +23,7 @@ public sealed class CompileCliOptionsTests
         Assert.Empty(options.Exports);
         Assert.Equal(WasmTarget.Wasm32, options.Platform);
         Assert.Equal(FinalWasmOptimization.Oz, options.Optimization);
+        Assert.True(options.Simd);
         Assert.Empty(options.Sources);
         Assert.Empty(options.ImportModules);
         Assert.False(options.UseJavaScriptExportBoundary);
@@ -52,7 +53,7 @@ public sealed class CompileCliOptionsTests
             "-gc:NetWasmGen", "-callbackobject:callbacks.o", "-wit:contract.wit", "-world:example:test/test",
             "-importmodule:host_ui", "-importmodule:host_gl", "-diagnostictrace:trace.json",
             "-diagnosticlog:compiler.jsonl", "-diagnosticloglevel:Information", "-jsexportboundary+",
-            "-structureddiagnostics", "-compiledunits-", "-verifycompiledunits+",
+            "-structureddiagnostics", "-compiledunits-", "-verifycompiledunits+", "-simd-",
             "-projectdirectory:/project", "-intermediatedirectory:/project/obj",
             "-wasmtoolsnode:node", "-wasmtoolscommand:run.mjs", "-wasmtoolsmodule:wasm-tools.wasm",
             "-managedloopinvariantfieldhoisting:Disabled", "-managedstaticdataviewelimination:Enabled",
@@ -102,6 +103,7 @@ public sealed class CompileCliOptionsTests
             options.Exports);
         Assert.Equal(WasmTarget.Wasm64, options.Platform);
         Assert.Equal(FinalWasmOptimization.O3, options.Optimization);
+        Assert.False(options.Simd);
         Assert.Equal("/src=/_/", options.PathMap);
         Assert.Equal(["Entry.cs", "Math.cs"], options.Sources);
         Assert.Equal("interop.json", options.InteropManifest);

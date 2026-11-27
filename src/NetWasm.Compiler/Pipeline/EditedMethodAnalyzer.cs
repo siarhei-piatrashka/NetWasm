@@ -71,7 +71,7 @@ internal sealed class EditedMethodAnalyzer(
             instances,
             methodImplementations.Create(metadata),
             formatter,
-            intrinsics.Create(formatter, metadata.Methods),
+            intrinsics.Create(formatter, metadata.Methods, metadata.Simd),
             preparation.OptimizationSettings,
             preparation.World,
             preparation.InliningExcludedMethods);

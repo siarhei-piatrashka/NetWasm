@@ -10,6 +10,23 @@ namespace NetWasm.Compiler.ComponentModel.Tests;
 
 public sealed class ComponentCoreModuleLinkExecutionTests
 {
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public void OptimizerHonorsBothTargetAndOverrideSimdSettings(bool targetSimd, bool overrideSimd)
+    {
+        var stages = new RecordingStages();
+        var request = new ComponentCoreModuleLinkRequest("application", "runtime", "output",
+            ComponentTarget.Wasm32Wasi02 with { Simd = targetSimd })
+        { OptimizationOverrides = new(Simd: overrideSimd) };
+
+        CreateExecution(stages).Run(request, CreateWorkspace(stages));
+
+        Assert.Equal(targetSimd && overrideSimd, stages.Optimization!.Value.Item3.Simd);
+    }
+
     [Fact]
     public void ResolvesOnceAndForwardsEffectiveSettingsWithoutReinterpretingPreset()
     {

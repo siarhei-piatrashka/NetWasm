@@ -8,21 +8,24 @@
 # once into NETWASM_DEPENDENCY_CACHE and checked against its SHA-256. Every object goes into one archive, so a program
 # links only the shim functions it calls and the OpenSSL code they reach.
 #
-# usage: build-crypto-native.sh --target wasm32|wasm64 --output <archive>
+# usage: build-crypto-native.sh --target wasm32|wasm64 --output <archive> [--simd true|false]
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 target=""
 output=""
+simd=true
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --target) target="$2"; shift 2 ;;
         --output) output="$2"; shift 2 ;;
+        --simd) simd="$2"; shift 2 ;;
         *) echo "unknown argument '$1'" >&2; exit 2 ;;
     esac
 done
 [[ "$target" = wasm32 || "$target" = wasm64 ]] || { echo "--target must be 'wasm32' or 'wasm64'" >&2; exit 2; }
 [[ -n "$output" ]] || { echo "--output is required" >&2; exit 2; }
+[[ "$simd" = true || "$simd" = false ]] || { echo "--simd must be true or false" >&2; exit 2; }
 
 emsdk="${NETWASM_EMSDK_ROOT:-${EMSDK:-}}"
 [[ -n "$emsdk" && -x "$emsdk/upstream/emscripten/emcc" ]] || {
@@ -67,7 +70,9 @@ if [[ "$target" = wasm64 ]]; then
     target_flags=(-sMEMORY64=1)
     openssl_target=linux-generic64
 fi
-common_flags=(-O3 -msimd128 -DNDEBUG -g0 "-ffile-prefix-map=$repo_root=." "-ffile-prefix-map=$work=." "${target_flags[@]}")
+simd_flag=-msimd128
+if [[ "$simd" = false ]]; then simd_flag=-mno-simd128; fi
+common_flags=(-O3 "$simd_flag" -DNDEBUG -g0 "-ffile-prefix-map=$repo_root=." "-ffile-prefix-map=$work=." "${target_flags[@]}")
 
 # One thread, no engines, no dynamic loading, no sockets (TLS is the host's), and no seed source of OpenSSL's own:
 # the shim installs NetWasm's (netwasm/pal_netwasm_seed.c). Providers are built in (no-module); the legacy one stays,

@@ -118,7 +118,7 @@ internal sealed class CompilationAnalysisBuilder(
             methodInstances,
             symbols);
 
-        var runtimeIntrinsics = _intrinsics.Create(symbols, metadata.Methods);
+        var runtimeIntrinsics = _intrinsics.Create(symbols, metadata.Methods, metadata.Simd);
         var program = _analyzers.Create(
             metadata,
             types,

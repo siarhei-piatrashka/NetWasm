@@ -62,7 +62,7 @@ internal sealed class CompiledUnitStateFactory(
             // through a recorded query: the target's width and how methods are structured.
             // and which native libraries bind, which decides whether a P/Invoke is an import or a throwing body.
             Policy = $"{options.Target}/{branchPrefixDuplication}/{dispatcherElimination}/{NativeBindingPolicy(options)}" +
-                $"/{FeatureSwitchPolicy(options)}",
+                $"/simd:{options.Simd}/{FeatureSwitchPolicy(options)}",
             Bodies = CompiledUnitState.Index(program.Methods.Values, program.ConstructedMethods.Values),
             Store = _loader.Load(inputs.Directory),
             Structuring = _structuring,

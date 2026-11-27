@@ -44,7 +44,8 @@ internal sealed class BulkValueCopyEmitter(ITargetLayout layouts) : IValueCopyEm
 }
 
 internal sealed class SmallValueCopyEmitter(
-    IValueCopyEmitter bulk) : IValueCopyEmitter
+    IValueCopyEmitter bulk,
+    ITargetLayout? layouts = null) : IValueCopyEmitter
 {
     private const int InlineSize = 16;
 
@@ -59,7 +60,7 @@ internal sealed class SmallValueCopyEmitter(
     {
         ValueCopyContract.Validate(
             code, destinationLocal, size, alignment, widestChunk, emitSource);
-        if (size != InlineSize)
+        if (size != InlineSize || layouts?.Target.Simd == false)
         {
             // Where the method inlines small blocks, other sizes copy in exact
             // chunks as known-size copies do.

@@ -54,7 +54,7 @@ ITargetLayout layouts,
         {
             Size = environment.Size,
         };
-        var localTypes = WasmLocalLayoutPlanner.CreateFilterLocals(header);
+        var localTypes = WasmLocalLayoutPlanner.CreateFilterLocals(header, layouts.Target.Simd);
         var anchorLocals = ImmutableDictionary.CreateBuilder<int, int>();
         for (var index = 0; index < rootMap.AnchorPlan.Anchors.Length; index++)
         {

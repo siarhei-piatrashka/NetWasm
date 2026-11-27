@@ -12,8 +12,11 @@ internal static class OptimizerOverridesParser
     public static WasmOptimizationOverrides? Apply(
         WasmOptimizationOverrides? overrides,
         bool converge,
-        string lowMemoryUnused)
+        string lowMemoryUnused,
+        bool simd = true)
     {
+        if (!simd)
+            overrides = (overrides ?? new()) with { Simd = false };
         if (converge)
             overrides = (overrides ?? new()) with { Converge = true };
         return ParseLowMemoryUnused(lowMemoryUnused) is { } value

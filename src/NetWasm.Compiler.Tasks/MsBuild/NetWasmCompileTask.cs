@@ -84,6 +84,7 @@ public sealed class NetWasmCompileTask : ToolTask
     // NetWasmMissingApiAsError: a reached method naming a member its declaring type lacks fails the compile, rather
     // than compiling to a body that throws MissingMethodException or MissingFieldException.
     public bool MissingApiAsError { get; set; }
+    public bool Simd { get; set; } = true;
     // The project's RuntimeHostConfigurationOption items; those marked Trim="true" with a Boolean value are folded,
     // as ILLink folds them.
     public ITaskItem[] RuntimeHostConfigurationOptions { get; set; } = [];
@@ -217,6 +218,8 @@ public sealed class NetWasmCompileTask : ToolTask
             builder.AppendSwitch("-nologo");
         }
         builder.AppendFileNameIfNotNull(InputAssemblyPath);
+        if (!Simd)
+            builder.AppendSwitch("-simd-");
         builder.AppendSwitch(PlainCoreModule
             ? "-target:coremodule"
             : CompileAsLibrary ? "-target:library" : "-target:exe");

@@ -9,7 +9,7 @@
 #include <stdalign.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __wasm__
+#ifdef __wasm_simd128__
 #include <wasm_simd128.h>
 #endif
 
@@ -709,7 +709,7 @@ static void open_runs(const NetWasmGc *gc, size_t *objects, size_t *bytes)
 /* Zeroes a run of at most NWGC_INLINE_ZERO_BYTES, a multiple of the 8-byte slot
  * alignment, in place. Kept from becoming a memset call, which memory.fill would
  * make a call into the host. */
-#ifdef __wasm__
+#ifdef __wasm_simd128__
 __attribute__((noinline, __target__("simd128"), no_builtin("memset")))
 static void zero_short_run(unsigned char *start, size_t bytes)
 {
