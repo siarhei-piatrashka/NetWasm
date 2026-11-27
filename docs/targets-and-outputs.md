@@ -129,8 +129,12 @@ alternative is to retain the Emscripten closure and implement a dedicated
 Preview 1 bridge, but its standalone stubs, Emscripten-specific symbols and
 deliberate import exclusions make that a larger ABI audit. Neither option has
 been proven end to end. Pin and package any new tools, sysroot, archives and
-licenses separately, and check exception ABI, static native libraries,
-linking/optimization and target feature compatibility before committing to one.
+licenses separately. wasi-sdk disables C++ exceptions by default and requires
+extra configuration for `setjmp`/`longjmp`; NetWasm's runtime pack builds
+exception and longjmp support, so check both ABIs and libraries as well as
+static native libraries, linking/optimization and target feature compatibility
+before committing to one. The wasi-sdk Preview 1 target also lacks networking
+and wasm64 support.
 
 The new path needs target-specific runtime implementations for the supported
 subset: map console output to `fd_write`, arguments/environment, clocks,
