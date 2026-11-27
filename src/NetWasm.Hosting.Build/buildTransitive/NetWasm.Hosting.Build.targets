@@ -1,38 +1,38 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmResolveBuildEnvironmentTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmBundleJavaScriptTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmBuildJavaScriptRuntimeTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteBrowserBootstrapEntryTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteDeploymentTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmResolveSiteFilesTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteSiteMapTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteExecutionDescriptorTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmTranspileComponentTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteExecutionRequestTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteWorkerHostEntryTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteWitWorkerHostEntryTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteWorkerClientEntryTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteWitWorkerClientEntryTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWritePageHostEntryTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWritePageModuleTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteCommandRunModuleTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
-  <UsingTask TaskName="NetWasm.Hosting.Build.MsBuild.NetWasmWriteTimeZoneSidecarTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)../tasks/net10.0/NetWasm.Hosting.Build.dll" />
+<Project>
+
+  <PropertyGroup>
+    <!--
+      When true, NetWasm will produce a wasm binary that does not use SIMD instructions.
+      This is done by removing SIMD-related target features from the toolchain feature list,
+      forcing scalar code generation paths.
+
+      Usage:
+        <NetWasmNoSimd>true</NetWasmNoSimd>
+    -->
+    <NetWasmNoSimd Condition="'$(NetWasmNoSimd)' == ''">false</NetWasmNoSimd>
+  </PropertyGroup>
+
+  <!-- Existing targets/props below -->
+
+  <ItemGroup>
+    <_NetWasmToolchainFeature Include="$(NetWasmToolchainFeatures)" Condition="'$(NetWasmToolchainFeatures)' != ''" />
+  </ItemGroup>
+
+  <!-- Normalize the feature list into a semicolon-separated property -->
+  <PropertyGroup>
+    <_NetWasmToolchainFeatures_Original>$(NetWasmToolchainFeatures)</_NetWasmToolchainFeatures_Original>
+  </PropertyGroup>
+
+  <!--
+    If NetWasmNoSimd=true, strip SIMD feature flags.
+
+    Notes:
+    - We handle common spellings used by LLVM/clang/wasm toolchains: simd128 and relaxed-simd.
+    - This keeps default behavior unchanged when the property is not set.
+  -->
+  <PropertyGroup Condition="'$(NetWasmNoSimd)' == 'true'">
+    <!-- Remove simd128 / relaxed-simd from a semi-colon separated list -->
+    <NetWasmToolchainFeatures>$([System.String]::Copy('$(_NetWasmToolchainFeatures_Original)').Replace('simd128;', '').Replace(';simd128', '').Replace('simd128', '').Replace('relaxed-simd;', '').Replace(';relaxed-simd', '').Replace('relaxed-simd', ''))</NetWasmToolchainFeatures>
+  </PropertyGroup>
+
 </Project>
