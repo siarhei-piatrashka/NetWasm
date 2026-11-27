@@ -18,7 +18,7 @@ public sealed class ComponentizeCliOptionsTests
         var options = Parse([
             .. Required, "-runtimemodule:runtime.wasm", "-world:example:test/main", "-platform:wasm64",
             "-interopmanifest:interop.json", "-jcoversion:1.2.3", "-preview3shimversion:4.5.6", "-optimize:none",
-            "-managedinlininghints:Preserve", "-converge+", "-lowmemoryunused-",
+            "-managedinlininghints:Preserve", "-converge+", "-lowmemoryunused-", "-simd-",
         ]);
 
         Assert.Equal("application.wasm", options.CoreModule);
@@ -32,6 +32,7 @@ public sealed class ComponentizeCliOptionsTests
         Assert.Equal("1.2.3", options.JcoVersion);
         Assert.Equal("4.5.6", options.Preview3ShimVersion);
         Assert.True(options.Converge);
+        Assert.False(options.Simd);
         Assert.False(Parse([.. Required]).Converge);
         Assert.False(options.LowMemoryUnused);
         Assert.True(Parse([.. Required, "-lowmemoryunused"]).LowMemoryUnused);
@@ -62,6 +63,7 @@ public sealed class ComponentizeCliOptionsTests
         Assert.Null(options.JcoVersion);
         Assert.Null(options.Preview3ShimVersion);
         Assert.Equal(FinalWasmOptimization.Oz, options.Optimization);
+        Assert.True(options.Simd);
         Assert.Null(options.ManagedInliningHints);
         Assert.Null(options.LowMemoryUnused);
     }

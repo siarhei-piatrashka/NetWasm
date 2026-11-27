@@ -8,6 +8,21 @@ namespace NetWasm.Compiler.ComponentModel.Tests.Optimization;
 
 public sealed class WasmOptimizationSettingsResolverTests
 {
+    [Theory]
+    [InlineData(FinalWasmOptimization.O1)]
+    [InlineData(FinalWasmOptimization.O2)]
+    [InlineData(FinalWasmOptimization.O3)]
+    public void ScalarModeDisablesArrayLoopIdiomsEvenWhenExplicitlyEnabled(FinalWasmOptimization preset)
+    {
+        var settings = Create().Resolve(preset, new(
+            Simd: false,
+            ArrayLoopIdioms: ManagedArrayLoopIdioms.Enabled,
+            LoopVectorization: ManagedLoopVectorization.Enabled));
+
+        Assert.Equal(ArrayLoopIdiomPolicy.Disabled, settings.ArrayLoopIdioms);
+        Assert.Equal(LoopVectorizationPolicy.Disabled, settings.LoopVectorization);
+    }
+
     // O3 rotates every conditional loop; Oz only those whose condition makes no call.
     private static LoopRotationPolicy LoopRotation(FinalWasmOptimization preset) => preset switch
     {

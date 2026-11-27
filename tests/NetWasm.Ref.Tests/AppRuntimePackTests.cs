@@ -48,7 +48,7 @@ public sealed class AppRuntimePackTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void SelectsNativeArchivesForTheSimdSetting(bool simd)
+    public async Task SelectsNativeArchivesForTheSimdSetting(bool simd)
     {
         var directory = Path.Combine(Path.GetTempPath(), "netwasm-app-native-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
@@ -69,10 +69,12 @@ public sealed class AppRuntimePackTests
             foreach (var argument in new[] { "msbuild", project, "-getItem:NativeLibrary", "-nologo" })
                 start.ArgumentList.Add(argument);
             using var process = Process.Start(start)!;
-            var output = process.StandardOutput.ReadToEnd();
-            var error = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-            Assert.True(process.ExitCode == 0, error);
+            var outputTask = process.StandardOutput.ReadToEndAsync(TestContext.Current.CancellationToken);
+            var errorTask = process.StandardError.ReadToEndAsync(TestContext.Current.CancellationToken);
+            await process.WaitForExitAsync(TestContext.Current.CancellationToken);
+            var output = await outputTask;
+            var error = await errorTask;
+            Assert.True(process.ExitCode == 0, output + error);
             using var json = JsonDocument.Parse(output);
             var libraries = json.RootElement.GetProperty("Items").GetProperty("NativeLibrary").EnumerateArray().ToArray();
             Assert.Equal(4, libraries.Length);

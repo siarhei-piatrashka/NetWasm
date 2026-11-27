@@ -64,7 +64,7 @@ internal sealed class NativeCallbackThunkEmitter(
                 CliValueKind.I4,
                 CliValueKind.ManagedAddress,
                 CliValueKind.ManagedAddress,
-                CliValueKind.V128,
+                layouts.Target.Simd ? CliValueKind.V128 : CliValueKind.I8,
             ],
             layouts.Target);
         var vectors = new VectorScratch(vectorAddressLocal, vectorValueLocal);

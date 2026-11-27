@@ -422,7 +422,7 @@ internal sealed record ComponentizeCliOptions(
     public static readonly FrozenSet<string> Names = new[]
     {
         "coremodule", "runtimemodule", "wit", "world", "out", "manifest", "platform",
-        "interopmanifest", "jcoversion", "preview3shimversion", "optimize", "managedinlininghints",
+        "interopmanifest", "jcoversion", "preview3shimversion", "optimize", "simd", "managedinlininghints",
         "converge", "entryassembly", "plaincoremodule", "lowmemoryunused",
     }.ToFrozenSet(StringComparer.Ordinal);
 
@@ -433,6 +433,8 @@ internal sealed record ComponentizeCliOptions(
     public string? EntryAssembly { get; init; }
 
     public bool Converge { get; init; }
+
+    public bool Simd { get; init; } = true;
 
     // Write the linked core module itself, a plain core module without WASI, instead of a
     // component; it has no component manifest.
@@ -470,6 +472,7 @@ internal sealed record ComponentizeCliOptions(
             EntryAssembly = options.Single("entryassembly"),
             PlainCoreModule = plainCoreModule,
             LowMemoryUnused = options.Toggle("lowmemoryunused", absent: null),
+            Simd = options.Toggle("simd", absent: true),
         };
     }
 }

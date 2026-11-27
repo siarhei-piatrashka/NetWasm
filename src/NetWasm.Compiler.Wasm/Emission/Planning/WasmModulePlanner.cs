@@ -361,6 +361,7 @@ internal sealed class WasmModulePlanner(
             key.Assembly,
             type.Namespace,
             type.Name,
-            type.IsValueType);
+            type.IsValueType,
+            type.Simd);
     }
 }

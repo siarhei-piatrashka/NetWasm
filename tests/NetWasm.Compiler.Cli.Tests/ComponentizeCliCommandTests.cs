@@ -92,6 +92,18 @@ public sealed class ComponentizeCliCommandTests
         Assert.Contains("wasm64", Assert.Single(harness.Files.TextWrites).Content, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void PassesScalarSettingToComponentLinkRequest()
+    {
+        var harness = new Harness("wasm32");
+
+        harness.Run(
+            "-coremodule:app.wasm", "-wit:contract.wit", "-out:component.wasm", "-manifest:component.json",
+            "-simd-");
+
+        Assert.False(harness.Packager.Request!.Target.Simd);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("Preserve")]

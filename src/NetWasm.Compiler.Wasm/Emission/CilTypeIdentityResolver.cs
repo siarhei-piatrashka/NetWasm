@@ -20,6 +20,7 @@ internal sealed class CilTypeIdentityResolver(
             key.Assembly,
             type.Namespace,
             type.Name,
-            type.IsValueType);
+            type.IsValueType,
+            type.Simd);
     }
 }

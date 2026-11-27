@@ -9,8 +9,10 @@ namespace NetWasm.Compiler.Tests;
 
 public sealed class NativeCallbackCompilationTests
 {
-    [Fact]
-    public void CompilerUnifiesNamedAndAddressTakenCallbackReachability()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CompilerUnifiesNamedAndAddressTakenCallbackReachability(bool simd)
     {
         using var assets = TestAssets.Create();
         var assembly = assets.CompileUnsafeSource(
@@ -42,7 +44,8 @@ public sealed class NativeCallbackCompilationTests
             "NamedAddressedCallbackFixture.EntryPoint",
             "Run",
             [],
-            Target: WasmTarget.Wasm32));
+            Target: WasmTarget.Wasm32,
+            OptimizationOverrides: new(Simd: simd)));
 
         var support = Assert.IsType<WasmNativeCallbackSupportArtifact>(
             result.NativeCallbackSupport);

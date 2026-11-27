@@ -70,6 +70,24 @@ public sealed class BrowserComponentCoreModulesTests
     }
 
     [Theory]
+    [InlineData(FinalWasmOptimization.O1)]
+    [InlineData(FinalWasmOptimization.O2)]
+    [InlineData(FinalWasmOptimization.O3)]
+    [InlineData(FinalWasmOptimization.Os)]
+    [InlineData(FinalWasmOptimization.Oz)]
+    public void PlansOptimizedScalarLink(FinalWasmOptimization optimization)
+    {
+        var target = ComponentTarget.Wasm32Wasi02 with { Simd = false };
+        var plan = BrowserComponentCoreModules.CreateOrderedLinkPlan(
+            CreateRequest(target) with { Optimization = optimization }, CreateWorkspace());
+        var optimizer = Assert.Single(
+            plan.Operations.OfType<BrowserLinkToolOperation>(),
+            operation => operation.ToolId == BinaryenToolIds.WasmOpt);
+
+        Assert.Contains("--disable-simd", optimizer.Arguments);
+    }
+
+    [Theory]
     [InlineData(false, ManagedExecutableReturnShape.Void)]
     [InlineData(false, ManagedExecutableReturnShape.ExitCode)]
     [InlineData(true, ManagedExecutableReturnShape.Void)]

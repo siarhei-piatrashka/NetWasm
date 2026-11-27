@@ -16,6 +16,7 @@ public sealed class CilTypeIdentityResolverTests
     [InlineData("System", "IntPtr", true, CliValueKind.NativeInt)]
     [InlineData("System", "UIntPtr", true, CliValueKind.NativeInt)]
     [InlineData("System", "Int32", true, CliValueKind.I4)]
+    [InlineData("System.Numerics", "Vector2", true, CliValueKind.V128)]
     [InlineData("Test", "Value", true, CliValueKind.ValueType)]
     [InlineData("Test", "Reference", false, CliValueKind.ManagedReference)]
     public void ResolveNormalizesEveryTypeDefinitionStackFamily(
@@ -34,6 +35,17 @@ public sealed class CilTypeIdentityResolverTests
     }
 
     [Fact]
+    public void ResolveUsesScalarIdentityForVectorDefinitionsWithoutSimd()
+    {
+        var repository = new TypeRepository("System.Numerics", "Vector2", isValueType: true, simd: false);
+        var resolver = new CilTypeIdentityResolver(repository);
+
+        var result = ((ICilTypeIdentityResolver)resolver).Resolve(Key);
+
+        Assert.Equal(CliValueKind.ValueType, result.StackKind);
+    }
+
+    [Fact]
     public void ConstructorRejectsMissingCollaborators()
     {
         var repository = new TypeRepository("Test", "Reference", isValueType: false);
@@ -45,7 +57,8 @@ public sealed class CilTypeIdentityResolverTests
     private sealed class TypeRepository(
         string typeNamespace,
         string name,
-        bool isValueType) : ITypeRepository
+        bool isValueType,
+        bool simd = true) : ITypeRepository
     {
         public TypeDefinitionModel GetTypeDefinition(EntityKey key) => new(
             key,
@@ -53,6 +66,6 @@ public sealed class CilTypeIdentityResolverTests
             name,
             isValueType,
             [],
-            []);
+            []) { Simd = simd };
     }
 }

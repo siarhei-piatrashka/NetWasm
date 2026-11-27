@@ -77,6 +77,27 @@ public sealed class BrowserRawCoreModulesTests
         Assert.Equal("v/tmp/merged.wasm", plan.Operations.OfType<BrowserLinkValidationOperation>().Single().Path);
     }
 
+    [Theory]
+    [InlineData(FinalWasmOptimization.O1)]
+    [InlineData(FinalWasmOptimization.O2)]
+    [InlineData(FinalWasmOptimization.O3)]
+    [InlineData(FinalWasmOptimization.Os)]
+    [InlineData(FinalWasmOptimization.Oz)]
+    public void PlansOptimizedScalarLink(FinalWasmOptimization optimization)
+    {
+        var request = Request(optimization) with
+        {
+            Target = ComponentTarget.Wasm32Wasi02 with { Simd = false },
+        };
+
+        var plan = BrowserRawCoreModules.CreateOrderedLinkPlan(request, Workspace());
+        var optimizer = Assert.Single(
+            plan.Operations.OfType<BrowserLinkToolOperation>(),
+            operation => operation.ToolId == BinaryenToolIds.WasmOpt);
+
+        Assert.Contains("--disable-simd", optimizer.Arguments);
+    }
+
     [Fact]
     public void RejectsAliasedAndUninitializedInputs()
     {

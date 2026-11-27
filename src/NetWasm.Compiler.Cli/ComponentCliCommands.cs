@@ -50,9 +50,9 @@ internal sealed class ComponentizeCliCommand(
             optimizationOverrides = (optimizationOverrides ?? new()) with { Converge = true };
         if (options.LowMemoryUnused is { } lowMemoryUnused)
             optimizationOverrides = (optimizationOverrides ?? new()) with { LowMemoryUnused = lowMemoryUnused };
-        var target = options.Platform == WasmTarget.Wasm32
+        var target = (options.Platform == WasmTarget.Wasm32
             ? ComponentTarget.Wasm32Wasi02
-            : ComponentTarget.Wasm64Wasi02;
+            : ComponentTarget.Wasm64Wasi02) with { Simd = options.Simd };
         var document = _documents.Read(options.Wit);
         var world = document.SelectWorld(options.World);
         _validator.Validate(document, world);
