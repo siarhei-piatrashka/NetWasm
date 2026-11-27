@@ -77,6 +77,9 @@ Component Model or JavaScript host. Its only external imports, if any, must
 be from `wasi_snapshot_preview1`. A `.wasm` extension or an intermediate core
 module alone does not establish that contract. Preview 1 is not supported
 today; this section is a plan, not a new build option.
+The [current roadmap](roadmap.md) deliberately excludes Preview 1; accepting
+this proposal would require an explicit policy decision and updates to that
+support statement, not just a toolchain change.
 
 ### Current pipeline and constraints
 
@@ -134,7 +137,9 @@ extra configuration for `setjmp`/`longjmp`; NetWasm's runtime pack builds
 exception and longjmp support, so check both ABIs and libraries as well as
 static native libraries, linking/optimization and target feature compatibility
 before committing to one. The wasi-sdk Preview 1 target also lacks networking
-and wasm64 support.
+and wasm64 support. The [Mono AOT comparison](performance.md) already uses
+wasi-sdk 33.0, but that benchmark is not a NetWasm Preview 1 build or proof
+that its sysroot is compatible with NetWasm's runtime.
 
 The new path needs target-specific runtime implementations for the supported
 subset: map console output to `fd_write`, arguments/environment, clocks,
